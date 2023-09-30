@@ -46,7 +46,7 @@ int main()
         return -1;
     }
 
-    SDL_Texture* renderTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1280, 720);
+    SDL_Texture* renderTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, TARGET_WIDTH, TARGET_HEIGHT);
 
     const double MOVE_SPEED = 1.0;
 
@@ -100,6 +100,7 @@ int main()
     }
 
     // Destroy the render, window and finalise SDL
+    SDL_DestroyTexture(renderTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
