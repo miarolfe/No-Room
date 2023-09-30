@@ -24,8 +24,8 @@ jobs:
       - name: Set executable permissions
         run: |
           cd bin-ci/LD54.app/Contents/MacOS
-          chmod +x MiniFPS.sh
-          chmod +x MiniFPS
+          chmod +x LD54.sh
+          chmod +x LD54
 
       - name : Tar app
         run: tar -cvf LD54.tar -C bin/ --exclude='.DS_Store' LD54.app
