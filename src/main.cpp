@@ -2,6 +2,10 @@
 
 #include <iostream>
 #include <SDL.h>
+#include "FrameTimer.h"
+#include "InputHandler.h"
+#include "Vec2.h"
+#include "Vec2Int.h"
 
 // Window size
 #define WINDOW_WIDTH 640
@@ -32,24 +36,40 @@ int main(int argc, char* args[])
         return -1;
     }
 
-    // Draw the texture in the screen
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    const double MOVE_SPEED = 1.0;
 
-    // Keep the main loop until the window is closed (SDL_QUIT event)
-    bool exit = false;
-    SDL_Event eventData;
-    while (!exit)
-    {
-        while (SDL_PollEvent(&eventData))
-        {
-            switch (eventData.type)
-            {
-                case SDL_QUIT:
-                    exit = true;
-                    break;
-            }
-        }
+    FrameTimer frameTimer;
+    InputHandler inputHandler;
+    Vec2 boxPos {0.0, 0.0};
+    Vec2 boxSize {50.0, 50.0};
+
+    SDL_Rect boxRect = {
+            static_cast<int>(boxPos.x),
+            static_cast<int>(boxPos.y),
+            static_cast<int>(boxSize.x),
+            static_cast<int>(boxSize.y),
+    };
+
+    while (!inputHandler.state.exit) {
+        frameTimer.Update();
+        inputHandler.Update();
+
+        if (inputHandler.state.leftKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.rightKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.upKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.downKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
+
+        boxRect.x = static_cast<int>(boxPos.x);
+        boxRect.y = static_cast<int>(boxPos.y);
+        boxRect.w = static_cast<int>(boxSize.x);
+        boxRect.h = static_cast<int>(boxSize.y);
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &boxRect);
+        SDL_RenderPresent(renderer);
     }
 
     // Destroy the render, window and finalise SDL
