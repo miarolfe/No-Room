@@ -1,4 +1,4 @@
-name: Build MiniFPS for macOS
+name: Build LD54 for macOS
 
 on:
   push:
