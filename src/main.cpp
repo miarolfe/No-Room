@@ -7,12 +7,22 @@
 #include "Vec2.h"
 #include "Vec2Int.h"
 
-// Window size
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
-
 int main(int argc, char* args[])
 {
+    const int TARGET_WIDTH = 1280;
+    const int TARGET_HEIGHT = 720;
+    const double TARGET_ASPECT_RATIO = static_cast<double>(TARGET_WIDTH) / static_cast<double>(TARGET_HEIGHT);
+
+    const int WINDOW_WIDTH = 1600;
+    const int WINDOW_HEIGHT = 900;
+    const double WINDOW_ASPECT_RATIO = static_cast<double>(WINDOW_WIDTH) / static_cast<double>(WINDOW_HEIGHT);
+
+    bool aspectRatiosMatch = true;
+
+    if (TARGET_ASPECT_RATIO != WINDOW_ASPECT_RATIO) {
+        aspectRatiosMatch = false;
+    }
+
     // SDL initialisation
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
@@ -36,11 +46,13 @@ int main(int argc, char* args[])
         return -1;
     }
 
+    SDL_Texture* renderTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1280, 720);
+
     const double MOVE_SPEED = 1.0;
 
     FrameTimer frameTimer;
     InputHandler inputHandler;
-    Vec2 boxPos {0.0, 0.0};
+    Vec2 boxPos {25.0, 25.0};
     Vec2 boxSize {50.0, 50.0};
 
     SDL_Rect boxRect = {
@@ -64,11 +76,21 @@ int main(int argc, char* args[])
         boxRect.w = static_cast<int>(boxSize.x);
         boxRect.h = static_cast<int>(boxSize.y);
 
+        SDL_SetRenderTarget(renderer, renderTexture);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
-
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
+
+        SDL_SetRenderTarget(renderer, nullptr);
+
+        if (aspectRatiosMatch) {
+            SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+        } else {
+            // TODO: Letterbox / pillarbox
+            SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+        }
+
         SDL_RenderPresent(renderer);
     }
 
