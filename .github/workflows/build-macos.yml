@@ -28,7 +28,7 @@ jobs:
           chmod +x LD54
 
       - name : Tar app
-        run: tar -cvf LD54.tar -C bin/ --exclude='.DS_Store' LD54.app
+        run: tar -cvf LD54.tar -C bin-ci/ --exclude='.DS_Store' LD54.app
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
