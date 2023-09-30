@@ -54,10 +54,10 @@ int main(int argc, char* args[])
         frameTimer.Update();
         inputHandler.Update();
 
-        if (inputHandler.state.leftKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.rightKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.upKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.downKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.leftKeyPressed  || inputHandler.state.aKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.rightKeyPressed || inputHandler.state.dKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
+        if (inputHandler.state.downKeyPressed  || inputHandler.state.sKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
 
         boxRect.x = static_cast<int>(boxPos.x);
         boxRect.y = static_cast<int>(boxPos.y);
