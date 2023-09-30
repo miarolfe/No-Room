@@ -23,7 +23,7 @@ jobs:
 
       - name: Set executable permissions
         run: |
-          cd bin/LD54.app/Contents/MacOS
+          cd bin-ci/LD54.app/Contents/MacOS
           chmod +x MiniFPS.sh
           chmod +x MiniFPS
 
