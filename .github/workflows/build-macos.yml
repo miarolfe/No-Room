@@ -1,0 +1,37 @@
+name: Build MiniFPS for macOS
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: brew install cmake ninja-build
+
+      - name: Build game
+        run: |
+          mkdir bin-ci
+          cmake -G "Ninja" -S . -B bin-ci
+          cd bin-ci
+          ninja
+
+      - name: Set executable permissions
+        run: |
+          cd bin/LD54.app/Contents/MacOS
+          chmod +x MiniFPS.sh
+          chmod +x MiniFPS
+
+      - name : Tar app
+        run: tar -cvf LD54.tar -C bin/ --exclude='.DS_Store' LD54.app
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: LD54-macOS
+          path: LD54.tar
