@@ -7,7 +7,7 @@
 #include "Vec2.h"
 #include "Vec2Int.h"
 
-int main(int argc, char* args[])
+int main()
 {
     const int TARGET_WIDTH = 1280;
     const int TARGET_HEIGHT = 720;
