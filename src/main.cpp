@@ -31,7 +31,7 @@ int main(int argc, char* args[])
     }
 
     // Window creation and position in the center of the screen
-    SDL_Window* window = SDL_CreateWindow("Hello World SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == nullptr)
     {
         SDL_Log("SDL_CreateWindow Error: %s\n", SDL_GetError());
@@ -70,6 +70,11 @@ int main(int argc, char* args[])
         if (inputHandler.state.rightKeyPressed || inputHandler.state.dKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.downKeyPressed  || inputHandler.state.sKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
+
+        if (boxPos.x < 0.0)                       boxPos.x = 0.0;
+        if (boxPos.x > TARGET_WIDTH - boxSize.x)  boxPos.x = TARGET_WIDTH - boxSize.x;
+        if (boxPos.y < 0.0)                       boxPos.y = 0.0;
+        if (boxPos.y > TARGET_HEIGHT - boxSize.y) boxPos.y = TARGET_HEIGHT - boxSize.y;
 
         boxRect.x = static_cast<int>(boxPos.x);
         boxRect.y = static_cast<int>(boxPos.y);
