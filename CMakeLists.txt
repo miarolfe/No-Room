@@ -13,7 +13,7 @@ if (WIN32)
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/LD54-windows"
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/LD54-windows/assets"
             COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "${CMAKE_CURRENT_BINARY_DIR}/LD54-windows/assets"
-            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.dll" "{CMAKE_CURRENT_BINARY_DIR}/LD54-windows"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.dll" "${CMAKE_CURRENT_BINARY_DIR}/LD54-windows"
             COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/LD54.exe" "${CMAKE_CURRENT_BINARY_DIR}/LD54-windows"
             )
 elseif(APPLE)
