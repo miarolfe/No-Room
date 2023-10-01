@@ -12,6 +12,8 @@
 
 using string = std::string;
 
+const SDL_Color WHITE = {255, 255, 255, 255};
+
 const char* GetAssetFolderPath() {
     const char* platform = SDL_GetPlatform();
 
@@ -22,6 +24,32 @@ const char* GetAssetFolderPath() {
     } else {
         return "";
     }
+}
+
+void DrawTextStringToWidth(const string& text, TTF_Font* font, Vec2Int pos, int width, SDL_Renderer* renderer) {
+    Vec2Int requestedSize {0, 0};
+    TTF_SizeUTF8(font, text.c_str(), &requestedSize.x, &requestedSize.y);
+    const double ratio = static_cast<double>(requestedSize.x) / static_cast<double>(requestedSize.y);
+    const int height = static_cast<int>(static_cast<float>(width) / ratio);
+    SDL_Surface* textSurface = TTF_RenderText_Blended(font, text.c_str(), WHITE);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+    const SDL_Rect rect {pos.x, pos.y, width, height};
+    SDL_RenderCopy(renderer, textTexture, nullptr, &rect);
+    SDL_DestroyTexture(textTexture);
+}
+
+void DrawTextStringToHeight(const string& text, TTF_Font* font, Vec2Int pos, int height, SDL_Renderer* renderer) {
+    Vec2Int requestedSize {0, 0};
+    TTF_SizeUTF8(font, text.c_str(), &requestedSize.x, &requestedSize.y);
+    const double ratio = static_cast<double>(requestedSize.y) / static_cast<double>(requestedSize.x);
+    const int width = static_cast<int>(static_cast<float>(height) / ratio);
+    SDL_Surface* textSurface = TTF_RenderText_Blended(font, text.c_str(), WHITE);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_FreeSurface(textSurface);
+    const SDL_Rect rect {pos.x, pos.y, width, height};
+    SDL_RenderCopy(renderer, textTexture, nullptr, &rect);
+    SDL_DestroyTexture(textTexture);
 }
 
 double Lerp(float start, float end, float t) {
@@ -51,7 +79,14 @@ int main()
     const int GRID_HEIGHT = 18;
     Cell map[GRID_WIDTH][GRID_HEIGHT];
 
-    for (int i = 0; i < GRID_WIDTH; i++) {
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < GRID_HEIGHT; j++) {
+            map[i][j].ground = WALL;
+            map[i][j].entity = NO_ENTITY;
+        }
+    }
+
+    for (int i = 4; i < GRID_WIDTH; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
             map[i][j].ground = DEFAULT_GROUND;
             map[i][j].entity = NO_ENTITY;
@@ -84,6 +119,8 @@ int main()
 
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
+    TTF_Init();
+    // Mix_Init()
 
     // Window creation and position in the center of the screen
     SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
@@ -113,19 +150,27 @@ int main()
     obstacle1Path += "Obstacle1.png";
     SDL_Texture* obstacle1Texture = IMG_LoadTexture(renderer, obstacle1Path.c_str());
 
+    string boldFontPath = GetAssetFolderPath();
+    boldFontPath += "PixelifySans-Bold.ttf";
+    TTF_Font* boldFont = TTF_OpenFont(boldFontPath.c_str(), 120);
+
+    string mediumFontPath = GetAssetFolderPath();
+    mediumFontPath += "PixelifySans-Medium.ttf";
+    TTF_Font* mediumFont = TTF_OpenFont(mediumFontPath.c_str(), 120);
+
+    string regularFontPath = GetAssetFolderPath();
+    regularFontPath += "PixelifySans-Regular.ttf";
+    TTF_Font* regularFont = TTF_OpenFont(regularFontPath.c_str(), 120);
+
+    string semiBoldFontPath = GetAssetFolderPath();
+    semiBoldFontPath += "PixelifySans-SemiBold.ttf";
+    TTF_Font* semiBoldFont = TTF_OpenFont(semiBoldFontPath.c_str(), 120);
+
     const double MOVE_SPEED = 1.0;
 
     FrameTimer frameTimer;
     InputHandler inputHandler;
-    Vec2 boxPos {25.0, 25.0};
     Vec2 boxSize {50.0, 50.0};
-
-    SDL_Rect boxRect = {
-            static_cast<int>(boxPos.x),
-            static_cast<int>(boxPos.y),
-            static_cast<int>(boxSize.x),
-            static_cast<int>(boxSize.y),
-    };
 
     while (!inputHandler.state.exit) {
         frameTimer.Update();
@@ -135,22 +180,8 @@ int main()
         int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
         Cell& currentCell = map[currentCellX][currentCellY];
 
-        if (inputHandler.state.leftMousePressedThisFrame)  currentCell.entity = TURRET;
-        if (inputHandler.state.rightMousePressedThisFrame) currentCell.entity = OBSTACLE_1;
-        if (inputHandler.state.leftKeyPressed  || inputHandler.state.aKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.rightKeyPressed || inputHandler.state.dKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
-        if (inputHandler.state.downKeyPressed  || inputHandler.state.sKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
-
-        if (boxPos.x < 0.0) boxPos.x = 0.0;
-        if (boxPos.x > TARGET_WIDTH - boxSize.x) boxPos.x = TARGET_WIDTH - boxSize.x;
-        if (boxPos.y < 0.0) boxPos.y = 0.0;
-        if (boxPos.y > TARGET_HEIGHT - boxSize.y) boxPos.y = TARGET_HEIGHT - boxSize.y;
-
-        boxRect.x = static_cast<int>(boxPos.x);
-        boxRect.y = static_cast<int>(boxPos.y);
-        boxRect.w = static_cast<int>(boxSize.x);
-        boxRect.h = static_cast<int>(boxSize.y);
+        if (inputHandler.state.leftMousePressedThisFrame  && currentCell.ground != WALL) currentCell.entity = TURRET;
+        if (inputHandler.state.rightMousePressedThisFrame && currentCell.ground != WALL) currentCell.entity = OBSTACLE_1;
 
         SDL_SetRenderTarget(renderer, renderTexture);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -186,9 +217,6 @@ int main()
             }
         }
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(renderer, &boxRect);
-
         SDL_Rect currentlyHoveredCellRect {
                 currentCellX * static_cast<int>(boxSize.x),
                 currentCellY * static_cast<int>(boxSize.y),
@@ -198,6 +226,11 @@ int main()
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
+
+        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+        SDL_Rect menuRect {0, 0, static_cast<int>(boxSize.x * 4), GRID_HEIGHT * static_cast<int>(boxSize.y)};
+        SDL_RenderFillRect(renderer, &menuRect);
+        DrawTextStringToWidth("No Room", regularFont, {25, 15}, static_cast<int>(boxSize.x * 4) - 50, renderer);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
