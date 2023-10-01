@@ -35,6 +35,7 @@ enum GroundType {
 enum EntityType {
     NO_ENTITY,
     TURRET,
+    OBSTACLE_1
 };
 
 struct Cell {
@@ -106,6 +107,10 @@ int main()
     turretPath += "Turret.png";
     SDL_Texture* turretTexture = IMG_LoadTexture(renderer, turretPath.c_str());
 
+    string obstacle1Path = GetAssetFolderPath();
+    obstacle1Path += "Obstacle1.png";
+    SDL_Texture* obstacle1Texture = IMG_LoadTexture(renderer, obstacle1Path.c_str());
+
     const double MOVE_SPEED = 1.0;
 
     FrameTimer frameTimer;
@@ -129,7 +134,7 @@ int main()
         Cell& currentCell = map[currentCellX][currentCellY];
 
         if (inputHandler.state.leftMousePressedThisFrame)  currentCell.entity = TURRET;
-        if (inputHandler.state.rightMousePressedThisFrame) currentCell.entity = NO_ENTITY;
+        if (inputHandler.state.rightMousePressedThisFrame) currentCell.entity = OBSTACLE_1;
         if (inputHandler.state.leftKeyPressed  || inputHandler.state.aKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.rightKeyPressed || inputHandler.state.dKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
@@ -170,6 +175,9 @@ int main()
                         break;
                     case TURRET:
                         SDL_RenderCopy(renderer, turretTexture, nullptr, &rect);
+                        break;
+                    case OBSTACLE_1:
+                        SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &rect);
                         break;
                 }
 
