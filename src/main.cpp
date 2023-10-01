@@ -75,6 +75,7 @@ struct Cell {
 
 int main()
 {
+    int balance = 100;
     const int GRID_WIDTH = 32;
     const int GRID_HEIGHT = 18;
     Cell map[GRID_WIDTH][GRID_HEIGHT];
@@ -151,19 +152,19 @@ int main()
     SDL_Texture* obstacle1Texture = IMG_LoadTexture(renderer, obstacle1Path.c_str());
 
     string boldFontPath = GetAssetFolderPath();
-    boldFontPath += "PixelifySans-Bold.ttf";
+    boldFontPath += "Changa-Bold.ttf";
     TTF_Font* boldFont = TTF_OpenFont(boldFontPath.c_str(), 120);
 
     string mediumFontPath = GetAssetFolderPath();
-    mediumFontPath += "PixelifySans-Medium.ttf";
+    mediumFontPath += "Changa-Medium.ttf";
     TTF_Font* mediumFont = TTF_OpenFont(mediumFontPath.c_str(), 120);
 
     string regularFontPath = GetAssetFolderPath();
-    regularFontPath += "PixelifySans-Regular.ttf";
+    regularFontPath += "Changa-Regular.ttf";
     TTF_Font* regularFont = TTF_OpenFont(regularFontPath.c_str(), 120);
 
     string semiBoldFontPath = GetAssetFolderPath();
-    semiBoldFontPath += "PixelifySans-SemiBold.ttf";
+    semiBoldFontPath += "Changa-SemiBold.ttf";
     TTF_Font* semiBoldFont = TTF_OpenFont(semiBoldFontPath.c_str(), 120);
 
     const double MOVE_SPEED = 1.0;
@@ -180,8 +181,14 @@ int main()
         int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
         Cell& currentCell = map[currentCellX][currentCellY];
 
-        if (inputHandler.state.leftMousePressedThisFrame  && currentCell.ground != WALL) currentCell.entity = TURRET;
-        if (inputHandler.state.rightMousePressedThisFrame && currentCell.ground != WALL) currentCell.entity = OBSTACLE_1;
+        if (inputHandler.state.leftMousePressedThisFrame && balance >= 5 && currentCell.ground != WALL) {
+            currentCell.entity = TURRET;
+            balance -= 5;
+        }
+        if (inputHandler.state.rightMousePressedThisFrame && balance >= 1 && currentCell.ground != WALL) {
+            currentCell.entity = OBSTACLE_1;
+            balance -= 1;
+        }
 
         SDL_SetRenderTarget(renderer, renderTexture);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -230,7 +237,10 @@ int main()
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
         SDL_Rect menuRect {0, 0, static_cast<int>(boxSize.x * 4), GRID_HEIGHT * static_cast<int>(boxSize.y)};
         SDL_RenderFillRect(renderer, &menuRect);
-        DrawTextStringToWidth("No Room", regularFont, {25, 15}, static_cast<int>(boxSize.x * 4) - 50, renderer);
+        DrawTextStringToWidth("No Room", regularFont, {25, 10}, static_cast<int>(boxSize.x * 4) - 50, renderer);
+
+        string balanceStr = "$: " + std::to_string(balance);
+        DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, static_cast<int>(boxSize.y), renderer);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
