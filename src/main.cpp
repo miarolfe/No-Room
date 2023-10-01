@@ -117,6 +117,19 @@ void RemoveEntity(Cell** map, std::pair<int, int> entity) {
     }
 }
 
+bool SetNextSafeZoneCellToParkingLot(Cell** map, int gridWidth, int gridHeight) {
+    for (int i = 0; i < gridWidth; i++) {
+        for (int j = 0; j < gridHeight; j++) {
+            if (map[i][j].ground == SAFE_ZONE) {
+                map[i][j].ground = PARKING_LOT;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 int main()
 {
     int currentHighestEnemyId = 0;
@@ -350,6 +363,7 @@ int main()
                 enemy.Update(frameTimer.frameDeltaMs);
                 if (enemy.collider.Intersects(wallCollider)) {
                     std::cout << "Enemy hit wall" << std::endl;
+                    SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT);
                     enemiesToRemove.push_back(enemy);
                 }
             }
