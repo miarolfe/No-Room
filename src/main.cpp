@@ -167,8 +167,6 @@ int main()
     semiBoldFontPath += "Changa-SemiBold.ttf";
     TTF_Font* semiBoldFont = TTF_OpenFont(semiBoldFontPath.c_str(), 120);
 
-    const double MOVE_SPEED = 1.0;
-
     FrameTimer frameTimer;
     InputHandler inputHandler;
     Vec2 boxSize {50.0, 50.0};
@@ -237,7 +235,7 @@ int main()
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
         SDL_Rect menuRect {0, 0, static_cast<int>(boxSize.x * 4), GRID_HEIGHT * static_cast<int>(boxSize.y)};
         SDL_RenderFillRect(renderer, &menuRect);
-        DrawTextStringToWidth("No Room", regularFont, {25, 10}, static_cast<int>(boxSize.x * 4) - 50, renderer);
+        DrawTextStringToWidth("No Room", boldFont, {25, 10}, static_cast<int>(boxSize.x * 4) - 50, renderer);
 
         string balanceStr = "$: " + std::to_string(balance);
         DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, static_cast<int>(boxSize.y), renderer);
