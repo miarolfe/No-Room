@@ -1,13 +1,15 @@
 #pragma once
 
 #include "SDL.h"
+#include "Vec2Int.h"
 
 class InputHandler {
 public:
     struct State {
+        Vec2Int mousePos {0, 0};
+        bool leftMousePressedThisFrame = false;
+        bool rightMousePressedThisFrame = false;
         bool exit = false;
-        bool leftMousePressed = false;
-        bool rightMousePressed = false;
         bool wKeyPressed = false;
         bool aKeyPressed = false;
         bool sKeyPressed = false;
@@ -16,21 +18,37 @@ public:
         bool downKeyPressed = false;
         bool leftKeyPressed = false;
         bool rightKeyPressed = false;
+
     };
 
     State state;
 
 private:
-    SDL_Event eventData;
+    SDL_Event eventData{};
 
 public:
     InputHandler() = default;
 
     void Update() {
+        state.leftMousePressedThisFrame = false;
+        state.rightMousePressedThisFrame = false;
+
         while (SDL_PollEvent(&eventData))
         {
             switch (eventData.type)
             {
+                case SDL_MOUSEMOTION:
+                    state.mousePos = {eventData.button.x, eventData.button.y};
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                    if (eventData.button.button == SDL_BUTTON_LEFT) {
+                        state.leftMousePressedThisFrame = true;
+                    } else if (eventData.button.button == SDL_BUTTON_RIGHT) {
+                        state.rightMousePressedThisFrame = true;
+                    }
+                    break;
+
                 case SDL_QUIT:
                     state.exit = true;
                     break;
