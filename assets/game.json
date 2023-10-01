@@ -8,5 +8,40 @@
     "spawn_time": 10.0,
     "type": "VAN",
     "y": 300
+  },
+  {
+    "spawn_time": 15.0,
+    "type": "VAN",
+    "y": 100
+  },
+  {
+    "spawn_time": 20.0,
+    "type": "VAN",
+    "y": 600
+  },
+  {
+    "spawn_time": 30.0,
+    "type": "VAN",
+    "y": 700
+  },
+  {
+    "spawn_time": 35.0,
+    "type": "VAN",
+    "y": 400
+  },
+  {
+    "spawn_time": 37.5,
+    "type": "VAN",
+    "y": 250
+  },
+  {
+    "spawn_time": 40.0,
+    "type": "VAN",
+    "y": 800
+  },
+  {
+    "spawn_time": 45.0,
+    "type": "VAN",
+    "y": 300
   }
 ]

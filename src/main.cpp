@@ -468,9 +468,11 @@ int main()
         DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
 
         if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+            SDL_SetRenderDrawColor(renderer, 144, 255, 144, 255);
         } else if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+            SDL_SetRenderDrawColor(renderer, 192, 255, 192, 255);
+        } else if (gameplayActive) {
+            SDL_SetRenderDrawColor(renderer, 160, 255, 160, 255);
         } else {
             SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
         }
@@ -479,9 +481,11 @@ int main()
         SDL_RenderCopy(renderer, playButtonTexture, nullptr, &playButtonImgRect);
 
         if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+            SDL_SetRenderDrawColor(renderer, 255, 144, 144, 255);
         } else if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+            SDL_SetRenderDrawColor(renderer, 255, 192, 192, 255);
+        } else if (!gameplayActive) {
+            SDL_SetRenderDrawColor(renderer, 255, 160, 160, 255);
         } else {
             SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
         }
