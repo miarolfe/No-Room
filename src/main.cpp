@@ -133,6 +133,7 @@ bool SetNextSafeZoneCellToParkingLot(Cell** map, int gridWidth, int gridHeight) 
 
 int main()
 {
+    bool gameOver = false;
     int currentHighestEnemyId = 0;
     double gameClock = 0.0f;
     bool gameplayActive = false;
@@ -354,292 +355,326 @@ int main()
         inputHandler.Update();
         frameTimer.Update();
 
-        std::vector<Enemy> enemiesToRemove;
-        std::vector<std::pair<int, int>> entitiesToRemove; // By map coordinates
+        if (!gameOver) {
+            std::vector<Enemy> enemiesToRemove;
+            std::vector<std::pair<int, int>> entitiesToRemove; // By map coordinates
 
-        if (gameplayActive) {
-            gameClock += frameTimer.frameDeltaMs;
+            if (gameplayActive) {
+                gameClock += frameTimer.frameDeltaMs;
 
-            EnemySpawn& nextEnemySpawn = enemySpawns.front();
-            if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
-                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 1.5, static_cast<double>(boxSize.y) * 0.75}, 0.25, currentHighestEnemyId++);
-                enemySpawns.erase(enemySpawns.begin());
-                audioHandler.PlayEffect("Alert");
+                EnemySpawn& nextEnemySpawn = enemySpawns.front();
+                if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
+                    if (nextEnemySpawn.type == VAN) {
+                        SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, vanTexture, {static_cast<double>(boxSize.x) * 1.5, static_cast<double>(boxSize.y) * 0.75}, 0.25, currentHighestEnemyId++);
+                    } else if (nextEnemySpawn.type == PICKUP) {
+                        SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 1.5, static_cast<double>(boxSize.y) * 0.75}, 0.25, currentHighestEnemyId++);
+                    }
+
+                    enemySpawns.erase(enemySpawns.begin());
+                    audioHandler.PlayEffect("Alert");
+                }
+
+                for (int i = 0; i < GRID_WIDTH; i++) {
+                    for (int j = 0; j < GRID_HEIGHT; j++) {
+                        if (map[i][j].entityType != NO_ENTITY) {
+                            map[i][j].entity->Update(frameTimer.frameDeltaMs);
+                            for (Enemy& enemy : enemies) {
+                                if (map[i][j].entity->collider.Intersects(enemy.collider) && !enemy.removed) {
+                                    enemiesToRemove.push_back(enemy);
+                                    enemy.removed = true;
+                                    entitiesToRemove.emplace_back(i, j);
+                                    audioHandler.PlayEffect("HitEnemy");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (Enemy& enemy : enemies) {
+                    enemy.Update(frameTimer.frameDeltaMs);
+                    if (enemy.collider.Intersects(wallCollider)) {
+                        std::cout << "Enemy hit wall" << std::endl;
+
+                        // Lose four spaces
+                        if (!SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT)) {
+                            gameOver = true;
+                        }
+
+                        if (!SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT)) {
+                            gameOver = true;
+                        }
+
+                        if (!SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT)) {
+                            gameOver = true;
+                        }
+
+                        if (!SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT)) {
+                            gameOver = true;
+                        }
+
+                        enemiesToRemove.push_back(enemy);
+                    }
+                }
+
+                for (Entity& projectile : projectiles) {
+                    projectile.Update(frameTimer.frameDeltaMs);
+                    projectile.collider.pos.x -= frameTimer.frameDeltaMs;
+
+                    for (Enemy& enemy : enemies) {
+                        if (projectile.collider.Intersects(enemy.collider)) {
+                            std::cout << "Projectile hit enemy" << std::endl;
+                            enemiesToRemove.push_back(enemy);
+                            audioHandler.PlayEffect("HitEnemy");
+                        }
+                    }
+                }
+            }
+
+            while (!enemiesToRemove.empty()) {
+                balance += 1;
+                RemoveEnemy(enemies, enemiesToRemove.front());
+                enemiesToRemove.erase(enemiesToRemove.begin());
+            }
+
+            while (!entitiesToRemove.empty()) {
+                RemoveEntity(map, entitiesToRemove.front());
+                entitiesToRemove.erase(entitiesToRemove.begin());
+            }
+
+            int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
+            int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
+            Cell& currentCell = map[currentCellX][currentCellY];
+
+            if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+                gameplayActive = true;
+            }
+
+            if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+                gameplayActive = false;
+            }
+
+            if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
+                if (currentCell.entityType != NO_ENTITY) {
+                    switch (currentEntityType) {
+                        case NO_ENTITY:
+                            switch (currentCell.entityType) {
+                                case TURRET:
+                                    balance += TURRET_VALUE;
+                                    delete currentCell.entity;
+                                    currentCell.entity = nullptr;
+                                    currentCell.entityType = NO_ENTITY;
+                                    break;
+                                case OBSTACLE:
+                                    balance += OBSTACLE_VALUE;
+                                    delete currentCell.entity;
+                                    currentCell.entity = nullptr;
+                                    currentCell.entityType = NO_ENTITY;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                } else {
+                    switch (currentEntityType) {
+                        case TURRET:
+                            if (balance >= TURRET_VALUE) {
+                                currentCell.entity = new TurretEntity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)},
+                                                                      {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)},
+                                                                      turretTexture,
+                                                                      {static_cast<double>(boxSize.x) / 2, static_cast<double>(boxSize.y) / 4},
+                                                                      projectileTexture,
+                                                                      projectiles,
+                                                                      audioHandler);
+                                currentCell.entityType = TURRET;
+                                balance -= TURRET_VALUE;
+                            }
+                            break;
+                        case OBSTACLE:
+                            if (balance >= OBSTACLE_VALUE) {
+                                currentCell.entity = new Entity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
+                                currentCell.entityType = OBSTACLE;
+                                balance -= OBSTACLE_VALUE;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            SDL_SetRenderTarget(renderer, renderTexture);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+
+            SDL_Rect currentlyHoveredCellRect {
+                    currentCellX * boxSize.x,
+                    currentCellY * boxSize.y,
+                    boxSize.x,
+                    boxSize.y
+            };
+
+
+            for (int i = 0; i < GRID_WIDTH; i++) {
+                for (int j = 0; j < GRID_HEIGHT; j++) {
+                    SDL_Rect rect {i * boxSize.x, j * boxSize.y, boxSize.x, boxSize.y};
+
+                    switch (map[i][j].ground) {
+                        case DEFAULT_GROUND:
+                            SDL_RenderCopy(renderer, floor1Texture, nullptr, &rect);
+                            break;
+                        case SAFE_ZONE:
+                            SDL_RenderCopy(renderer, floor2Texture, nullptr, &rect);
+                            break;
+                        case WALL:
+                            SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
+                            break;
+                        case PARKING_LOT:
+                            if (i == GRID_WIDTH-1) {
+                                SDL_RenderCopy(renderer, parkingLot1Texture, nullptr, &rect);
+                            } else {
+                                SDL_RenderCopy(renderer, parkingLot2Texture, nullptr, &rect);
+                            }
+
+                            break;
+                    }
+                }
+            }
+
+            if (currentCell.entityType == NO_ENTITY) {
+                switch (currentEntityType) {
+                    case NO_ENTITY:
+                        break;
+                    case TURRET:
+                        SDL_RenderCopy(renderer, turretTexture, nullptr, &currentlyHoveredCellRect);
+                        break;
+                    case OBSTACLE:
+                        SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &currentlyHoveredCellRect);
+                        break;
+                }
+            }
+
+            for (Entity& projectile : projectiles) {
+                projectile.Draw(renderer);
             }
 
             for (int i = 0; i < GRID_WIDTH; i++) {
                 for (int j = 0; j < GRID_HEIGHT; j++) {
                     if (map[i][j].entityType != NO_ENTITY) {
-                        map[i][j].entity->Update(frameTimer.frameDeltaMs);
-                        for (Enemy& enemy : enemies) {
-                            if (map[i][j].entity->collider.Intersects(enemy.collider) && !enemy.removed) {
-                                enemiesToRemove.push_back(enemy);
-                                enemy.removed = true;
-                                entitiesToRemove.emplace_back(i, j);
-                                audioHandler.PlayEffect("HitEnemy");
-                            }
-                        }
+                        map[i][j].entity->Draw(renderer);
                     }
                 }
             }
 
             for (Enemy& enemy : enemies) {
-                enemy.Update(frameTimer.frameDeltaMs);
-                if (enemy.collider.Intersects(wallCollider)) {
-                    std::cout << "Enemy hit wall" << std::endl;
-                    SetNextSafeZoneCellToParkingLot(map, GRID_WIDTH, GRID_HEIGHT);
-                    enemiesToRemove.push_back(enemy);
-                }
+                enemy.Draw(renderer);
             }
 
-            for (Entity& projectile : projectiles) {
-                projectile.Update(frameTimer.frameDeltaMs);
-                projectile.collider.pos.x -= frameTimer.frameDeltaMs;
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+            SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
 
-                for (Enemy& enemy : enemies) {
-                    if (projectile.collider.Intersects(enemy.collider)) {
-                        std::cout << "Projectile hit enemy" << std::endl;
-                        enemiesToRemove.push_back(enemy);
-                        audioHandler.PlayEffect("HitEnemy");
-                    }
-                }
-            }
-        }
+            SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+            SDL_Rect menuRect {0, 0, boxSize.x * 4, GRID_HEIGHT * boxSize.y};
+            SDL_RenderFillRect(renderer, &menuRect);
+            DrawTextStringToWidth("No Room", boldFont, {25, 10}, (boxSize.x * 4) - 50, renderer);
 
-        while (!enemiesToRemove.empty()) {
-            balance += 1;
-            RemoveEnemy(enemies, enemiesToRemove.front());
-            enemiesToRemove.erase(enemiesToRemove.begin());
-        }
+            string balanceStr = "$: " + std::to_string(balance);
+            DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, boxSize.y, renderer);
 
-        while (!entitiesToRemove.empty()) {
-            RemoveEntity(map, entitiesToRemove.front());
-            entitiesToRemove.erase(entitiesToRemove.begin());
-        }
-
-        int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
-        int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
-        Cell& currentCell = map[currentCellX][currentCellY];
-
-        if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
-            gameplayActive = true;
-        }
-
-        if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
-            gameplayActive = false;
-        }
-
-        if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
-            if (currentCell.entityType != NO_ENTITY) {
-                switch (currentEntityType) {
-                    case NO_ENTITY:
-                        switch (currentCell.entityType) {
-                            case TURRET:
-                                balance += TURRET_VALUE;
-                                delete currentCell.entity;
-                                currentCell.entity = nullptr;
-                                currentCell.entityType = NO_ENTITY;
-                                break;
-                            case OBSTACLE:
-                                balance += OBSTACLE_VALUE;
-                                delete currentCell.entity;
-                                currentCell.entity = nullptr;
-                                currentCell.entityType = NO_ENTITY;
-                                break;
-                            default:
-                                break;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+                SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+                currentEntityType = TURRET;
+            } else if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+                SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
             } else {
-                switch (currentEntityType) {
-                    case TURRET:
-                        if (balance >= TURRET_VALUE) {
-                            currentCell.entity = new TurretEntity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)},
-                                                                  {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)},
-                                                                  turretTexture,
-                                                                  {static_cast<double>(boxSize.x) / 2, static_cast<double>(boxSize.y) / 4},
-                                                                  projectileTexture,
-                                                                  projectiles,
-                                                                  audioHandler);
-                            currentCell.entityType = TURRET;
-                            balance -= TURRET_VALUE;
-                        }
-                        break;
-                    case OBSTACLE:
-                        if (balance >= OBSTACLE_VALUE) {
-                            currentCell.entity = new Entity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
-                            currentCell.entityType = OBSTACLE;
-                            balance -= OBSTACLE_VALUE;
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
             }
-        }
 
-        SDL_SetRenderTarget(renderer, renderTexture);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+            SDL_RenderFillRect(renderer, &turretButtonRect);
+            SDL_RenderCopy(renderer, turretTexture, nullptr, &turretButtonImgRect);
+            DrawTextStringToHeight("Turret", regularFont, {turretButtonRect.x + 5, turretButtonRect.y}, 30, renderer);
+            DrawTextStringToWidth("$5", regularFont, {turretButtonRect.x + 5, turretButtonRect.y + turretButtonRect.h - 30}, 20, renderer);
 
-        SDL_Rect currentlyHoveredCellRect {
-                currentCellX * boxSize.x,
-                currentCellY * boxSize.y,
-                boxSize.x,
-                boxSize.y
-        };
-
-
-        for (int i = 0; i < GRID_WIDTH; i++) {
-            for (int j = 0; j < GRID_HEIGHT; j++) {
-                SDL_Rect rect {i * boxSize.x, j * boxSize.y, boxSize.x, boxSize.y};
-
-                switch (map[i][j].ground) {
-                    case DEFAULT_GROUND:
-                        SDL_RenderCopy(renderer, floor1Texture, nullptr, &rect);
-                        break;
-                    case SAFE_ZONE:
-                        SDL_RenderCopy(renderer, floor2Texture, nullptr, &rect);
-                        break;
-                    case WALL:
-                        SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
-                        break;
-                    case PARKING_LOT:
-                        if (i == GRID_WIDTH-1) {
-                            SDL_RenderCopy(renderer, parkingLot1Texture, nullptr, &rect);
-                        } else {
-                            SDL_RenderCopy(renderer, parkingLot2Texture, nullptr, &rect);
-                        }
-
-                        break;
-                }
+            if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+                SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+                currentEntityType = OBSTACLE;
+            } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+                SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
             }
-        }
 
-        if (currentCell.entityType == NO_ENTITY) {
-            switch (currentEntityType) {
-                case NO_ENTITY:
-                    break;
-                case TURRET:
-                    SDL_RenderCopy(renderer, turretTexture, nullptr, &currentlyHoveredCellRect);
-                    break;
-                case OBSTACLE:
-                    SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &currentlyHoveredCellRect);
-                    break;
+            SDL_RenderFillRect(renderer, &obstacleButtonRect);
+            SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &obstacleButtonImgRect);
+            DrawTextStringToHeight("Obstacle", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y}, 30, renderer);
+            DrawTextStringToWidth("$1", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y + obstacleButtonRect.h - 35}, 20, renderer);
+
+            if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+                SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+                currentEntityType = NO_ENTITY;
+            } else if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+                SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
             }
-        }
 
-        for (Entity& projectile : projectiles) {
-            projectile.Draw(renderer);
-        }
+            SDL_RenderFillRect(renderer, &sellButtonRect);
+            DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
 
-        for (int i = 0; i < GRID_WIDTH; i++) {
-            for (int j = 0; j < GRID_HEIGHT; j++) {
-                if (map[i][j].entityType != NO_ENTITY) {
-                    map[i][j].entity->Draw(renderer);
-                }
+            if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+                SDL_SetRenderDrawColor(renderer, 144, 255, 144, 255);
+            } else if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+                SDL_SetRenderDrawColor(renderer, 192, 255, 192, 255);
+            } else if (gameplayActive) {
+                SDL_SetRenderDrawColor(renderer, 160, 255, 160, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
             }
-        }
 
-        for (Enemy& enemy : enemies) {
-            enemy.Draw(renderer);
-        }
+            SDL_RenderFillRect(renderer, &playButtonRect);
+            SDL_RenderCopy(renderer, playButtonTexture, nullptr, &playButtonImgRect);
 
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
+            if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+                SDL_SetRenderDrawColor(renderer, 255, 144, 144, 255);
+            } else if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+                SDL_SetRenderDrawColor(renderer, 255, 192, 192, 255);
+            } else if (!gameplayActive) {
+                SDL_SetRenderDrawColor(renderer, 255, 160, 160, 255);
+            } else {
+                SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+            }
 
-        SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
-        SDL_Rect menuRect {0, 0, boxSize.x * 4, GRID_HEIGHT * boxSize.y};
-        SDL_RenderFillRect(renderer, &menuRect);
-        DrawTextStringToWidth("No Room", boldFont, {25, 10}, (boxSize.x * 4) - 50, renderer);
+            DrawTextStringToHeight("How to play", semiBoldFont, {playButtonRect.x , playButtonRect.y + 150}, 50, renderer);
+            DrawTextStringToHeight("Stop the cars", regularFont, {playButtonRect.x , playButtonRect.y + 200}, 37, renderer);
+            DrawTextStringToHeight("Kills = $", regularFont, {playButtonRect.x , playButtonRect.y + 225}, 37, renderer);
+            DrawTextStringToHeight("Save the grass", regularFont, {playButtonRect.x , playButtonRect.y + 250}, 37, renderer);
 
-        string balanceStr = "$: " + std::to_string(balance);
-        DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, boxSize.y, renderer);
+            SDL_RenderFillRect(renderer, &pauseButtonRect);
+            SDL_RenderCopy(renderer, pauseButtonTexture, nullptr, &pauseButtonImgRect);
 
-        if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-            currentEntityType = TURRET;
-        } else if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+            SDL_SetRenderTarget(renderer, nullptr);
+
+            if (aspectRatiosMatch) {
+                SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+            } else {
+                // TODO: Letterbox / pillarbox
+                SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+            }
+
+            SDL_RenderPresent(renderer);
         } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &turretButtonRect);
-        SDL_RenderCopy(renderer, turretTexture, nullptr, &turretButtonImgRect);
-        DrawTextStringToHeight("Turret", regularFont, {turretButtonRect.x + 5, turretButtonRect.y}, 30, renderer);
-        DrawTextStringToWidth("$5", regularFont, {turretButtonRect.x + 5, turretButtonRect.y + turretButtonRect.h - 30}, 20, renderer);
-
-        if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-            currentEntityType = OBSTACLE;
-        } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &obstacleButtonRect);
-        SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &obstacleButtonImgRect);
-        DrawTextStringToHeight("Obstacle", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y}, 30, renderer);
-        DrawTextStringToWidth("$1", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y + obstacleButtonRect.h - 35}, 20, renderer);
-
-        if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-            currentEntityType = NO_ENTITY;
-        } else if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &sellButtonRect);
-        DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
-
-        if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 255, 144, 255);
-        } else if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 255, 192, 255);
-        } else if (gameplayActive) {
-            SDL_SetRenderDrawColor(renderer, 160, 255, 160, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &playButtonRect);
-        SDL_RenderCopy(renderer, playButtonTexture, nullptr, &playButtonImgRect);
-
-        if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 255, 144, 144, 255);
-        } else if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 255, 192, 192, 255);
-        } else if (!gameplayActive) {
-            SDL_SetRenderDrawColor(renderer, 255, 160, 160, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        DrawTextStringToHeight("How to play", semiBoldFont, {playButtonRect.x , playButtonRect.y + 150}, 50, renderer);
-        DrawTextStringToHeight("Stop the cars", regularFont, {playButtonRect.x , playButtonRect.y + 200}, 37, renderer);
-        DrawTextStringToHeight("Kills = $", regularFont, {playButtonRect.x , playButtonRect.y + 225}, 37, renderer);
-        DrawTextStringToHeight("Save the grass", regularFont, {playButtonRect.x , playButtonRect.y + 250}, 37, renderer);
-
-        SDL_RenderFillRect(renderer, &pauseButtonRect);
-        SDL_RenderCopy(renderer, pauseButtonTexture, nullptr, &pauseButtonImgRect);
-
-        SDL_SetRenderTarget(renderer, nullptr);
-
-        if (aspectRatiosMatch) {
+            SDL_SetRenderTarget(renderer, renderTexture);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderClear(renderer);
+            DrawTextStringToHeight("There's no more room", boldFont, {50, 50}, 150, renderer);
+            DrawTextStringToHeight("Thanks for playing! :)", regularFont, {50, 150}, 50, renderer);
+            DrawTextStringToHeight("peterrolfe.com", regularFont, {50, 200}, 50, renderer);
+            SDL_SetRenderTarget(renderer, nullptr);
             SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
-        } else {
-            // TODO: Letterbox / pillarbox
-            SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+            SDL_RenderPresent(renderer);
         }
-
-        SDL_RenderPresent(renderer);
     }
 
     free(map);
