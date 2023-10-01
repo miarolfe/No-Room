@@ -8,7 +8,8 @@ if (WIN32)
             src/InputHandler.h
             src/FrameTimer.h
             src/Vec2.h
-            src/Vec2Int.h)
+            src/Vec2Int.h
+            src/BoxCollider.h)
 
     target_link_options(LD54 PRIVATE -static-libstdc++ -mwindows -static -lstdc++ -lpthread)
     target_include_directories(LD54 PRIVATE "${CMAKE_SOURCE_DIR}/vendor/include")
@@ -33,7 +34,8 @@ elseif(APPLE)
             src/InputHandler.h
             src/FrameTimer.h
             src/Vec2.h
-            src/Vec2Int.h)
+            src/Vec2Int.h
+            src/BoxCollider.h)
     set_target_properties(LD54 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/Info.plist)
     target_include_directories(LD54 PRIVATE "${CMAKE_SOURCE_DIR}/vendor/include")
     target_link_libraries(LD54 PRIVATE

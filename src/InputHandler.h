@@ -8,7 +8,9 @@ public:
     struct State {
         Vec2Int mousePos {0, 0};
         bool leftMousePressedThisFrame = false;
+        bool leftMousePressed = false;
         bool rightMousePressedThisFrame = false;
+        bool rightMousePressed = false;
         bool exit = false;
         bool wKeyPressed = false;
         bool aKeyPressed = false;
@@ -44,10 +46,21 @@ public:
                 case SDL_MOUSEBUTTONDOWN:
                     if (eventData.button.button == SDL_BUTTON_LEFT) {
                         state.leftMousePressedThisFrame = true;
+                        state.leftMousePressed = true;
                     } else if (eventData.button.button == SDL_BUTTON_RIGHT) {
                         state.rightMousePressedThisFrame = true;
+                        state.rightMousePressed = true;
                     }
                     break;
+
+                case SDL_MOUSEBUTTONUP:
+                    if (eventData.button.button == SDL_BUTTON_LEFT) {
+                        state.leftMousePressed = false;
+                    } else if (eventData.button.button == SDL_BUTTON_RIGHT) {
+                        state.rightMousePressed = false;
+                    }
+                    break;
+
 
                 case SDL_QUIT:
                     state.exit = true;

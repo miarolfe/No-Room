@@ -5,6 +5,7 @@
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
+#include "BoxCollider.h"
 #include "FrameTimer.h"
 #include "InputHandler.h"
 #include "Vec2.h"
@@ -172,6 +173,17 @@ int main()
     InputHandler inputHandler;
     Vec2Int boxSize {50, 50};
 
+    SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
+    BoxCollider turretButtonCollider(turretButtonRect);
+    SDL_Rect turretButtonImgRect {turretButtonRect.x + 15, turretButtonRect.y + 15, turretButtonRect.w - 30, turretButtonRect.h - 30};
+
+    SDL_Rect obstacleButtonRect {25, turretButtonRect.y + turretButtonRect.h + 10, boxSize.x * 3, boxSize.y * 3};
+    BoxCollider obstacleButtonCollider(obstacleButtonRect);
+    SDL_Rect obstacleButtonImgRect {obstacleButtonRect.x + 15, obstacleButtonRect.y + 15, obstacleButtonRect.w - 35, obstacleButtonRect.h - 30};
+
+    SDL_Rect sellButtonRect {25, obstacleButtonRect.y + obstacleButtonRect.h + 10, boxSize.x * 3, boxSize.y};
+    BoxCollider sellButtonCollider(sellButtonRect);
+
     while (!inputHandler.state.exit) {
         frameTimer.Update();
         inputHandler.Update();
@@ -259,24 +271,40 @@ int main()
         string balanceStr = "$: " + std::to_string(balance);
         DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, boxSize.y, renderer);
 
-        SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
-        SDL_Rect turretButtonImgRect {turretButtonRect.x + 15, turretButtonRect.y + 15, turretButtonRect.w - 30, turretButtonRect.h - 30};
-        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
         SDL_RenderFillRect(renderer, &turretButtonRect);
         SDL_RenderCopy(renderer, turretTexture, nullptr, &turretButtonImgRect);
         DrawTextStringToHeight("Turret", regularFont, {turretButtonRect.x + 5, turretButtonRect.y}, 30, renderer);
         DrawTextStringToWidth("$5", regularFont, {turretButtonRect.x + 5, turretButtonRect.y + turretButtonRect.h - 30}, 20, renderer);
 
-        SDL_Rect obstacleButtonRect {25, turretButtonRect.y + turretButtonRect.h + 25, boxSize.x * 3, boxSize.y * 3};
-        SDL_Rect obstacleButtonImgRect {obstacleButtonRect.x + 15, obstacleButtonRect.y + 15, obstacleButtonRect.w - 35, obstacleButtonRect.h - 30};
-        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
         SDL_RenderFillRect(renderer, &obstacleButtonRect);
         SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &obstacleButtonImgRect);
         DrawTextStringToHeight("Obstacle", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y}, 30, renderer);
         DrawTextStringToWidth("$1", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y + obstacleButtonRect.h - 35}, 20, renderer);
 
-        SDL_Rect sellButtonRect {25, obstacleButtonRect.y + obstacleButtonRect.h + 25, boxSize.x * 3, boxSize.y};
-        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
         SDL_RenderFillRect(renderer, &sellButtonRect);
         DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 50, sellButtonRect.y}, sellButtonRect.h, renderer);
 
@@ -291,7 +319,7 @@ int main()
 
         SDL_RenderPresent(renderer);
     }
-    
+
     SDL_DestroyTexture(renderTexture);
     SDL_DestroyTexture(wall1Texture);
     SDL_DestroyTexture(floor1Texture);
