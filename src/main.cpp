@@ -180,8 +180,8 @@ int main()
     const int TARGET_HEIGHT = 900;
     const double TARGET_ASPECT_RATIO = static_cast<double>(TARGET_WIDTH) / static_cast<double>(TARGET_HEIGHT);
 
-    const int WINDOW_WIDTH = 1280;
-    const int WINDOW_HEIGHT = 720;
+    const int WINDOW_WIDTH = 1600;
+    const int WINDOW_HEIGHT = 900;
     const double WINDOW_ASPECT_RATIO = static_cast<double>(WINDOW_WIDTH) / static_cast<double>(WINDOW_HEIGHT);
 
     bool aspectRatiosMatch = true;
@@ -367,6 +367,13 @@ int main()
         }
 
         inputHandler.Update();
+        Vec2 mouseScalingRatio = {
+                static_cast<double>(WINDOW_WIDTH) / static_cast<double>(TARGET_WIDTH),
+                static_cast<double>(WINDOW_HEIGHT) / static_cast<double>(TARGET_HEIGHT)
+        };
+
+        inputHandler.state.mousePos.x = static_cast<int>(static_cast<double>(inputHandler.state.mousePos.x) * mouseScalingRatio.x);
+        inputHandler.state.mousePos.y = static_cast<int>(static_cast<double>(inputHandler.state.mousePos.y) * mouseScalingRatio.y);
         frameTimer.Update();
 
         if (!gameOver) {
