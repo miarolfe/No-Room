@@ -156,9 +156,12 @@ int main()
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
 
+        int currentCellX = inputHandler.state.mousePos.x / static_cast<int>(boxSize.x);
+        int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
+
         SDL_Rect currentlyHoveredCellRect {
-                inputHandler.state.mousePos.x,
-                inputHandler.state.mousePos.y,
+                currentCellX * static_cast<int>(boxSize.x),
+                currentCellY * static_cast<int>(boxSize.y),
                 static_cast<int>(boxSize.x),
                 static_cast<int>(boxSize.y)
         };
