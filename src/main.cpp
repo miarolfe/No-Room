@@ -8,6 +8,18 @@
 #include "Vec2.h"
 #include "Vec2Int.h"
 
+using string = std::string;
+
+const char* GetAssetFolderPath() {
+    const char* platform = SDL_GetPlatform();
+
+    if (strcmp(platform, "Windows") == 0) {
+        return "assets/";
+    } else if (strcmp(platform, "Mac OS X") == 0) {
+        return "../Resources/";
+    }
+}
+
 double Lerp(float start, float end, float t) {
     return start + t * (end - start);
 }
@@ -38,6 +50,10 @@ int main()
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_Texture* renderTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, TARGET_WIDTH, TARGET_HEIGHT);
+
+    string wall1Path = GetAssetFolderPath();
+    wall1Path += "Wall1.png";
+    SDL_Texture* wall1Texture = IMG_LoadTexture(renderer, wall1Path.c_str());
 
     const double MOVE_SPEED = 1.0;
 
@@ -95,6 +111,9 @@ int main()
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
+
+        SDL_Rect tmp {0, 0, 50, 50};
+        SDL_RenderCopy(renderer, wall1Texture, nullptr, &tmp);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
