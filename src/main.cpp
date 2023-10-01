@@ -134,6 +134,7 @@ bool SetNextSafeZoneCellToParkingLot(Cell** map, int gridWidth, int gridHeight) 
 int main()
 {
     bool gameOver = false;
+    bool victorious = false;
     int currentHighestEnemyId = 0;
     double gameClock = 0.0f;
     bool gameplayActive = false;
@@ -360,6 +361,11 @@ int main()
     });
 
     while (!inputHandler.state.exit) {
+        if (enemySpawns.empty()) {
+            gameOver = true;
+            victorious = true;
+        }
+
         inputHandler.Update();
         frameTimer.Update();
 
@@ -676,11 +682,21 @@ int main()
             }
 
             SDL_RenderPresent(renderer);
-        } else {
+        } else if (gameOver && !victorious){
             SDL_SetRenderTarget(renderer, renderTexture);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
             DrawTextStringToHeight("There's no more room", boldFont, {50, 50}, 150, renderer);
+            DrawTextStringToHeight("Thanks for playing! :)", regularFont, {50, 150}, 50, renderer);
+            DrawTextStringToHeight("peterrolfe.com", regularFont, {50, 200}, 50, renderer);
+            SDL_SetRenderTarget(renderer, nullptr);
+            SDL_RenderCopy(renderer, renderTexture, nullptr, nullptr);
+            SDL_RenderPresent(renderer);
+        } else {
+            SDL_SetRenderTarget(renderer, renderTexture);
+            SDL_SetRenderDrawColor(renderer, 128, 128, 255, 255);
+            SDL_RenderClear(renderer);
+            DrawTextStringToHeight("You saved the grass! Yay!", boldFont, {50, 50}, 150, renderer);
             DrawTextStringToHeight("Thanks for playing! :)", regularFont, {50, 150}, 50, renderer);
             DrawTextStringToHeight("peterrolfe.com", regularFont, {50, 200}, 50, renderer);
             SDL_SetRenderTarget(renderer, nullptr);
