@@ -9,6 +9,7 @@ public:
     BoxCollider collider;
     SDL_Texture* texture;
     double speed;
+    bool removed = false;
 
     Enemy(int id, SDL_Texture* texture, BoxCollider collider, double speed) : id(id), collider(collider), texture(texture), speed(speed) {}
 

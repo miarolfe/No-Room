@@ -107,6 +107,15 @@ struct Cell {
     Entity* entity = nullptr;
 };
 
+void RemoveEntity(Cell** map, std::pair<int, int> entity) {
+    Cell& cell = map[entity.first][entity.second];
+    if (cell.entityType != NO_ENTITY) {
+        delete cell.entity;
+        cell.entity = nullptr;
+        cell.entityType = NO_ENTITY;
+    }
+}
+
 int main()
 {
     int currentHighestEnemyId = 0;
@@ -117,7 +126,10 @@ int main()
     const int GRID_WIDTH = 32;
     const int GRID_HEIGHT = 18;
     const Vec2Int boxSize {50, 50};
-    Cell map[GRID_WIDTH][GRID_HEIGHT];
+    Cell** map = static_cast<Cell **>(malloc(sizeof(Cell) * GRID_WIDTH));
+    for (int i = 0; i < GRID_WIDTH; i++) {
+        map[i] = static_cast<Cell*>(malloc(sizeof(Cell) * GRID_HEIGHT));
+    }
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
@@ -292,13 +304,14 @@ int main()
         frameTimer.Update();
 
         std::vector<Enemy> enemiesToRemove;
+        std::vector<std::pair<int, int>> entitiesToRemove; // By map coordinates
 
         if (gameplayActive) {
             gameClock += frameTimer.frameDeltaMs;
 
             EnemySpawn& nextEnemySpawn = enemySpawns.front();
             if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
-                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 2, static_cast<double>(boxSize.y)}, 0.25, currentHighestEnemyId++);
+                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 1.5, static_cast<double>(boxSize.y) * 0.75}, 0.25, currentHighestEnemyId++);
                 enemySpawns.erase(enemySpawns.begin());
             }
 
@@ -307,8 +320,10 @@ int main()
                     if (map[i][j].entityType != NO_ENTITY) {
                         map[i][j].entity->Update(frameTimer.frameDeltaMs);
                         for (Enemy& enemy : enemies) {
-                            if (map[i][j].entity->collider.Intersects(enemy.collider)) {
+                            if (map[i][j].entity->collider.Intersects(enemy.collider) && !enemy.removed) {
                                 enemiesToRemove.push_back(enemy);
+                                enemy.removed = true;
+                                entitiesToRemove.emplace_back(i, j);
                             }
                         }
                     }
@@ -321,8 +336,14 @@ int main()
         }
 
         while (!enemiesToRemove.empty()) {
+            balance += 1;
             RemoveEnemy(enemies, enemiesToRemove.front());
             enemiesToRemove.erase(enemiesToRemove.begin());
+        }
+
+        while (!entitiesToRemove.empty()) {
+            RemoveEntity(map, entitiesToRemove.front());
+            entitiesToRemove.erase(entitiesToRemove.begin());
         }
 
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
