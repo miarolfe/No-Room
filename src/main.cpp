@@ -17,6 +17,8 @@ const char* GetAssetFolderPath() {
         return "assets/";
     } else if (strcmp(platform, "Mac OS X") == 0) {
         return "../Resources/";
+    } else {
+        return "";
     }
 }
 
@@ -24,8 +26,28 @@ double Lerp(float start, float end, float t) {
     return start + t * (end - start);
 }
 
+enum Cell {
+    EMPTY,
+    WALL,
+    TURRET
+};
+
 int main()
 {
+    const int GRID_WIDTH = 32;
+    const int GRID_HEIGHT = 18;
+    Cell map[GRID_WIDTH][GRID_HEIGHT];
+
+    for (int i = 0; i < GRID_WIDTH; i++) {
+        for (int j = 0; j < GRID_HEIGHT; j++) {
+            map[i][j] = EMPTY;
+        }
+    }
+
+    for (int i = 0; i < GRID_HEIGHT; i++) {
+        map[GRID_WIDTH-2][i] = WALL;
+    }
+
     const int TARGET_WIDTH = 1600;
     const int TARGET_HEIGHT = 900;
     const double TARGET_ASPECT_RATIO = static_cast<double>(TARGET_WIDTH) / static_cast<double>(TARGET_HEIGHT);
@@ -54,6 +76,10 @@ int main()
     string wall1Path = GetAssetFolderPath();
     wall1Path += "Wall1.png";
     SDL_Texture* wall1Texture = IMG_LoadTexture(renderer, wall1Path.c_str());
+
+    string floor1Path = GetAssetFolderPath();
+    floor1Path += "Floor1.png";
+    SDL_Texture* floor1Texture = IMG_LoadTexture(renderer, floor1Path.c_str());
 
     const double MOVE_SPEED = 1.0;
 
@@ -95,25 +121,27 @@ int main()
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        for (int i = 0; i < TARGET_WIDTH; i += static_cast<int>(boxSize.x)) {
-            for (int j = 0; j < TARGET_HEIGHT; j += static_cast<int>(boxSize.y)) {
-                SDL_Rect rect {i, j, static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
-                SDL_RenderDrawRect(renderer, &rect);
-            }
-        }
+        for (int i = 0; i < GRID_WIDTH; i++) {
+            for (int j = 0; j < GRID_HEIGHT; j++) {
+                SDL_Rect rect {i * static_cast<int>(boxSize.x), j * static_cast<int>(boxSize.y), static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
 
-        int s = TARGET_HEIGHT - (static_cast<int>(boxSize.y) * 2);
-        for (int i = 0; i < TARGET_WIDTH; i += static_cast<int>(boxSize.x)) {
-            SDL_Rect rect {i, s, static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
-            SDL_SetRenderDrawColor(renderer, 128, 128, 128, 128);
-            SDL_RenderFillRect(renderer, &rect);
+                switch (map[i][j]) {
+                    case EMPTY:
+                        SDL_RenderCopy(renderer, floor1Texture, nullptr, &rect);
+                        // SDL_RenderDrawRect(renderer, &rect);
+                        break;
+                    case WALL:
+                        SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
+                        break;
+                    case TURRET:
+                        break;
+                }
+
+            }
         }
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
-
-        SDL_Rect tmp {0, 0, 50, 50};
-        SDL_RenderCopy(renderer, wall1Texture, nullptr, &tmp);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
