@@ -103,7 +103,7 @@ int main()
     double gameClock = 0.0f;
     bool gameplayActive = false;
     EntityType currentEntityType = NO_ENTITY;
-    int balance = 100;
+    int balance = 25;
     const int GRID_WIDTH = 32;
     const int GRID_HEIGHT = 18;
     const Vec2Int boxSize {50, 50};
