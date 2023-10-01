@@ -32,9 +32,10 @@ public:
     std::vector<Entity>& projectiles;
     Vec2 projectileSize;
     SDL_Texture* projectileTexture;
+    AudioHandler& audioHandler;
 
-    TurretEntity(Vec2 pos, const Vec2& turretSize, SDL_Texture* turretTexture, const Vec2& projectileSize, SDL_Texture* projectileTexture, std::vector<Entity>& projectiles) : Entity(pos, turretSize, turretTexture),
-                                                                                                                                                                                  projectileSize(projectileSize), projectileTexture(projectileTexture), projectiles(projectiles) {
+    TurretEntity(Vec2 pos, const Vec2& turretSize, SDL_Texture* turretTexture, const Vec2& projectileSize, SDL_Texture* projectileTexture, std::vector<Entity>& projectiles, AudioHandler& audioHandler) : Entity(pos, turretSize, turretTexture),
+                                                                                                                                                                                  projectileSize(projectileSize), projectileTexture(projectileTexture), projectiles(projectiles), audioHandler(audioHandler) {
     }
 
     void Update(double frameDelta) override {
@@ -42,14 +43,15 @@ public:
         fireTimerMs += frameDelta;
 
         if (fireTimerMs >= FIRE_INTERVAL_MS) {
+            Fire();
             fireTimerMs = 0.0;
-            Vec2 projectilePos {collider.pos.x + (collider.bounds.x/2) - (projectileSize.x/2), collider.pos.y + (collider.bounds.y/2) - (projectileSize.y/2)};
-            Entity projectile(projectilePos, projectileSize, projectileTexture);
-            projectiles.push_back(projectile);
         }
     }
 
     void Fire() {
-
+        Vec2 projectilePos {collider.pos.x + (collider.bounds.x/2) - (projectileSize.x/2), collider.pos.y + (collider.bounds.y/2) - (projectileSize.y/2)};
+        Entity projectile(projectilePos, projectileSize, projectileTexture);
+        projectiles.push_back(projectile);
+        audioHandler.PlayEffect("TurretFire");
     }
 };

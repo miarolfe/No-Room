@@ -192,6 +192,7 @@ int main()
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+    Mix_MasterVolume(static_cast<int>(static_cast<float>(SDL_MIX_MAXVOLUME) * 0.1));
 
     // Window creation and position in the center of the screen
     SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
@@ -275,9 +276,13 @@ int main()
     string hitEnemySoundPath = GetAssetFolderPath();
     hitEnemySoundPath += "HitEnemy.wav";
 
+    string turretFireSoundPath = GetAssetFolderPath();
+    turretFireSoundPath += "TurretFire.wav";
+
     std::vector<string> effectPaths = {
             alertSoundPath,
-            hitEnemySoundPath
+            hitEnemySoundPath,
+            turretFireSoundPath
     };
 
     AudioHandler audioHandler(effectPaths, trackPaths);
@@ -457,7 +462,8 @@ int main()
                                                                   turretTexture,
                                                                   {static_cast<double>(boxSize.x) / 2, static_cast<double>(boxSize.y) / 4},
                                                                   projectileTexture,
-                                                                  projectiles);
+                                                                  projectiles,
+                                                                  audioHandler);
                             currentCell.entityType = TURRET;
                             balance -= TURRET_VALUE;
                         }
