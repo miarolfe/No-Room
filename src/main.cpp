@@ -75,12 +75,13 @@ enum GroundType {
 enum EntityType {
     NO_ENTITY,
     TURRET,
-    OBSTACLE_1
+    OBSTACLE
 };
 
 struct Cell {
     GroundType ground;
-    EntityType entity;
+    EntityType entityType;
+    Entity* entity = nullptr;
 };
 
 int main()
@@ -89,19 +90,22 @@ int main()
     int balance = 100;
     const int GRID_WIDTH = 32;
     const int GRID_HEIGHT = 18;
+    const Vec2Int boxSize {50, 50};
     Cell map[GRID_WIDTH][GRID_HEIGHT];
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
             map[i][j].ground = WALL;
-            map[i][j].entity = NO_ENTITY;
+            map[i][j].entityType = NO_ENTITY;
+            map[i][j].entity = nullptr;
         }
     }
 
     for (int i = 4; i < GRID_WIDTH; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
             map[i][j].ground = DEFAULT_GROUND;
-            map[i][j].entity = NO_ENTITY;
+            map[i][j].entityType = NO_ENTITY;
+            map[i][j].entity = nullptr;
         }
     }
 
@@ -188,7 +192,7 @@ int main()
 
     FrameTimer frameTimer;
     InputHandler inputHandler;
-    Vec2Int boxSize {50, 50};
+
     std::vector<Enemy> enemies;
 
     SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
@@ -212,6 +216,14 @@ int main()
         frameTimer.Update();
         inputHandler.Update();
 
+        for (int i = 0; i < GRID_WIDTH; i++) {
+            for (int j = 0; j < GRID_HEIGHT; j++) {
+                if (map[i][j].entityType != NO_ENTITY) {
+                    map[i][j].entity->Update(frameTimer.frameDeltaMs);
+                }
+            }
+        }
+
         for (Enemy& enemy : enemies) {
             enemy.Update(frameTimer.frameDeltaMs);
         }
@@ -229,17 +241,21 @@ int main()
         }
 
         if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
-            if (currentCell.entity != NO_ENTITY) {
+            if (currentCell.entityType != NO_ENTITY) {
                 switch (currentEntityType) {
                     case NO_ENTITY:
-                        switch (currentCell.entity) {
+                        switch (currentCell.entityType) {
                             case TURRET:
                                 balance += TURRET_VALUE;
-                                currentCell.entity = NO_ENTITY;
+                                delete currentCell.entity;
+                                currentCell.entity = nullptr;
+                                currentCell.entityType = NO_ENTITY;
                                 break;
-                            case OBSTACLE_1:
+                            case OBSTACLE:
                                 balance += OBSTACLE_VALUE;
-                                currentCell.entity = NO_ENTITY;
+                                delete currentCell.entity;
+                                currentCell.entity = nullptr;
+                                currentCell.entityType = NO_ENTITY;
                                 break;
                             default:
                                 break;
@@ -252,13 +268,15 @@ int main()
                 switch (currentEntityType) {
                     case TURRET:
                         if (balance >= TURRET_VALUE) {
-                            currentCell.entity = TURRET;
+                            currentCell.entity = new Entity({currentCellX * boxSize.x, currentCellY * boxSize.y}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, turretTexture);
+                            currentCell.entityType = TURRET;
                             balance -= TURRET_VALUE;
                         }
                         break;
-                    case OBSTACLE_1:
+                    case OBSTACLE:
                         if (balance >= OBSTACLE_VALUE) {
-                            currentCell.entity = OBSTACLE_1;
+                            currentCell.entity = new Entity({currentCellX * boxSize.x, currentCellY * boxSize.y}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
+                            currentCell.entityType = OBSTACLE;
                             balance -= OBSTACLE_VALUE;
                         }
                         break;
@@ -295,31 +313,27 @@ int main()
                         SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
                         break;
                 }
-
-                switch (map[i][j].entity) {
-                    case NO_ENTITY:
-                        break;
-                    case TURRET:
-                        SDL_RenderCopy(renderer, turretTexture, nullptr, &rect);
-                        break;
-                    case OBSTACLE_1:
-                        SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &rect);
-                        break;
-                }
-
             }
         }
 
-        if (currentCell.entity == NO_ENTITY) {
+        if (currentCell.entityType == NO_ENTITY) {
             switch (currentEntityType) {
                 case NO_ENTITY:
                     break;
                 case TURRET:
                     SDL_RenderCopy(renderer, turretTexture, nullptr, &currentlyHoveredCellRect);
                     break;
-                case OBSTACLE_1:
+                case OBSTACLE:
                     SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &currentlyHoveredCellRect);
                     break;
+            }
+        }
+
+        for (int i = 0; i < GRID_WIDTH; i++) {
+            for (int j = 0; j < GRID_HEIGHT; j++) {
+                if (map[i][j].entityType != NO_ENTITY) {
+                    map[i][j].entity->Draw(renderer);
+                }
             }
         }
 
@@ -354,7 +368,7 @@ int main()
 
         if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-            currentEntityType = OBSTACLE_1;
+            currentEntityType = OBSTACLE;
         } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
             SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
         } else {
