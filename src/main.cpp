@@ -1,7 +1,8 @@
 #define SDL_MAIN_HANDLED
 
 #include <iostream>
-#include <SDL.h>
+#include "SDL.h"
+#include "SDL_image.h"
 #include "FrameTimer.h"
 #include "InputHandler.h"
 #include "Vec2.h"
@@ -23,12 +24,8 @@ int main()
         aspectRatiosMatch = false;
     }
 
-    // SDL initialisation
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        SDL_Log("SDL_Init Error: %s\n", SDL_GetError());
-        return -1;
-    }
+    SDL_Init(SDL_INIT_EVERYTHING);
+    IMG_Init(IMG_INIT_PNG);
 
     // Window creation and position in the center of the screen
     SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
