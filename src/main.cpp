@@ -158,6 +158,7 @@ int main()
 
         int currentCellX = inputHandler.state.mousePos.x / static_cast<int>(boxSize.x);
         int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
+        Cell currentCell = map[currentCellX][currentCellY];
 
         SDL_Rect currentlyHoveredCellRect {
                 currentCellX * static_cast<int>(boxSize.x),
