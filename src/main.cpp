@@ -291,9 +291,17 @@ int main()
 
         SDL_RenderPresent(renderer);
     }
-
-    // Destroy the render, window and finalise SDL
+    
     SDL_DestroyTexture(renderTexture);
+    SDL_DestroyTexture(wall1Texture);
+    SDL_DestroyTexture(floor1Texture);
+    SDL_DestroyTexture(floor2Texture);
+    SDL_DestroyTexture(turretTexture);
+    SDL_DestroyTexture(obstacle1Texture);
+    TTF_CloseFont(boldFont);
+    TTF_CloseFont(mediumFont);
+    TTF_CloseFont(regularFont);
+    TTF_CloseFont(semiBoldFont);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
