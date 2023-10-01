@@ -8,6 +8,7 @@
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
 #include "BoxCollider.h"
+#include "Entity.h"
 #include "FrameTimer.h"
 #include "InputHandler.h"
 #include "Vec2.h"
@@ -218,10 +219,6 @@ int main()
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
         int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
         Cell& currentCell = map[currentCellX][currentCellY];
-
-        if (inputHandler.state.wKeyPressed) currentEntityType = TURRET;
-        if (inputHandler.state.sKeyPressed) currentEntityType = OBSTACLE_1;
-        if (inputHandler.state.aKeyPressed) currentEntityType = NO_ENTITY;
 
         if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
             SpawnEnemy(enemies, {-25.0, 25.0}, vanTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);

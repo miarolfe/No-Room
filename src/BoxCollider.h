@@ -9,6 +9,11 @@ public:
     Vec2 bounds {0.0, 0.0};
 
 public:
+    BoxCollider() {
+        pos = {0.0, 0.0};
+        bounds = {0.0, 0.0};
+    }
+
     BoxCollider(double x, double y, double w, double h) {
         pos = {x, y};
         bounds = {w, h};
