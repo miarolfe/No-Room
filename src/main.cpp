@@ -196,13 +196,44 @@ int main()
         if (inputHandler.state.sKeyPressed) currentEntityType = OBSTACLE_1;
         if (inputHandler.state.aKeyPressed) currentEntityType = NO_ENTITY;
 
-        if (inputHandler.state.leftMousePressedThisFrame && balance >= 5 && currentCell.ground != WALL) {
-            currentCell.entity = TURRET;
-            balance -= 5;
-        }
-        if (inputHandler.state.rightMousePressedThisFrame && balance >= 1 && currentCell.ground != WALL) {
-            currentCell.entity = OBSTACLE_1;
-            balance -= 1;
+        if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
+            if (currentCell.entity != NO_ENTITY) {
+                switch (currentEntityType) {
+                    case NO_ENTITY:
+                        switch (currentCell.entity) {
+                            case TURRET:
+                                balance += 5;
+                                currentCell.entity = NO_ENTITY;
+                                break;
+                            case OBSTACLE_1:
+                                balance += 1;
+                                currentCell.entity = NO_ENTITY;
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                switch (currentEntityType) {
+                    case TURRET:
+                        if (balance >= 5) {
+                            currentCell.entity = TURRET;
+                            balance -= 5;
+                        }
+                        break;
+                    case OBSTACLE_1:
+                        if (balance >= 1) {
+                            currentCell.entity = OBSTACLE_1;
+                            balance -= 1;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         SDL_SetRenderTarget(renderer, renderTexture);
@@ -273,6 +304,7 @@ int main()
 
         if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+            currentEntityType = TURRET;
         } else if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
             SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
         } else {
@@ -286,6 +318,7 @@ int main()
 
         if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+            currentEntityType = OBSTACLE_1;
         } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
             SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
         } else {
@@ -299,6 +332,7 @@ int main()
 
         if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+            currentEntityType = NO_ENTITY;
         } else if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
             SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
         } else {
