@@ -174,6 +174,14 @@ int main()
     pickupTruckPath += "PickupTruck.png";
     SDL_Texture* pickupTruckTexture = IMG_LoadTexture(renderer, pickupTruckPath.c_str());
 
+    string playButtonPath = GetAssetFolderPath();
+    playButtonPath += "PlayButton.png";
+    SDL_Texture* playButtonTexture = IMG_LoadTexture(renderer, playButtonPath.c_str());
+
+    string pauseButtonPath = GetAssetFolderPath();
+    pauseButtonPath += "PauseButton.png";
+    SDL_Texture* pauseButtonTexture = IMG_LoadTexture(renderer, pauseButtonPath.c_str());
+
     string boldFontPath = GetAssetFolderPath();
     boldFontPath += "Changa-Bold.ttf";
     TTF_Font* boldFont = TTF_OpenFont(boldFontPath.c_str(), 120);
@@ -211,6 +219,14 @@ int main()
 
     SDL_Rect pickupButtonRect {25, vanButtonRect.y + vanButtonRect.h + 10, boxSize.x * 3, boxSize.y};
     BoxCollider pickupButtonCollider(pickupButtonRect);
+
+    SDL_Rect playButtonRect {25, pickupButtonRect.y + pickupButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
+    BoxCollider playButtonCollider(playButtonRect);
+    SDL_Rect playButtonImgRect {playButtonRect.x + 15, playButtonRect.y + 5, playButtonRect.w - 30, playButtonRect.h - 10};
+
+    SDL_Rect pauseButtonRect {25 + playButtonRect.w + 10, pickupButtonRect.y + pickupButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
+    BoxCollider pauseButtonCollider(pauseButtonRect);
+    SDL_Rect pauseButtonImgRect {pauseButtonRect.x + 15, pauseButtonRect.y + 5, pauseButtonRect.w - 30, pauseButtonRect.h - 10};
 
     while (!inputHandler.state.exit) {
         frameTimer.Update();
@@ -414,6 +430,28 @@ int main()
         SDL_RenderFillRect(renderer, &pickupButtonRect);
         DrawTextStringToHeight("Pickup", regularFont, {pickupButtonRect.x + 15, pickupButtonRect.y}, pickupButtonRect.h, renderer);
 
+        if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
+        SDL_RenderFillRect(renderer, &playButtonRect);
+        SDL_RenderCopy(renderer, playButtonTexture, nullptr, &playButtonImgRect);
+
+        if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
+        SDL_RenderFillRect(renderer, &pauseButtonRect);
+        SDL_RenderCopy(renderer, pauseButtonTexture, nullptr, &pauseButtonImgRect);
+
         SDL_SetRenderTarget(renderer, nullptr);
 
         if (aspectRatiosMatch) {
@@ -434,6 +472,8 @@ int main()
     SDL_DestroyTexture(obstacle1Texture);
     SDL_DestroyTexture(vanTexture);
     SDL_DestroyTexture(pickupTruckTexture);
+    SDL_DestroyTexture(playButtonTexture);
+    SDL_DestroyTexture(pauseButtonTexture);
     TTF_CloseFont(boldFont);
     TTF_CloseFont(mediumFont);
     TTF_CloseFont(regularFont);
