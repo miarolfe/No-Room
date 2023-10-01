@@ -622,6 +622,11 @@ int main()
             SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
         }
 
+        DrawTextStringToHeight("How to play", semiBoldFont, {playButtonRect.x , playButtonRect.y + 150}, 50, renderer);
+        DrawTextStringToHeight("Stop the cars", regularFont, {playButtonRect.x , playButtonRect.y + 200}, 37, renderer);
+        DrawTextStringToHeight("Kills = $", regularFont, {playButtonRect.x , playButtonRect.y + 225}, 37, renderer);
+        DrawTextStringToHeight("Save the grass", regularFont, {playButtonRect.x , playButtonRect.y + 250}, 37, renderer);
+
         SDL_RenderFillRect(renderer, &pauseButtonRect);
         SDL_RenderCopy(renderer, pauseButtonTexture, nullptr, &pauseButtonImgRect);
 
