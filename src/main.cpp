@@ -8,10 +8,14 @@
 #include "Vec2.h"
 #include "Vec2Int.h"
 
+double Lerp(float start, float end, float t) {
+    return start + t * (end - start);
+}
+
 int main()
 {
-    const int TARGET_WIDTH = 1280;
-    const int TARGET_HEIGHT = 720;
+    const int TARGET_WIDTH = 1600;
+    const int TARGET_HEIGHT = 900;
     const double TARGET_ASPECT_RATIO = static_cast<double>(TARGET_WIDTH) / static_cast<double>(TARGET_HEIGHT);
 
     const int WINDOW_WIDTH = 1600;
@@ -29,20 +33,10 @@ int main()
 
     // Window creation and position in the center of the screen
     SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == nullptr)
-    {
-        SDL_Log("SDL_CreateWindow Error: %s\n", SDL_GetError());
-        return -1;
-    }
 
     // Render creation
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == nullptr)
-    {
-        SDL_Log("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        return -1;
-    }
-
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_Texture* renderTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, TARGET_WIDTH, TARGET_HEIGHT);
 
     const double MOVE_SPEED = 1.0;
@@ -68,9 +62,9 @@ int main()
         if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.downKeyPressed  || inputHandler.state.sKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
 
-        if (boxPos.x < 0.0)                       boxPos.x = 0.0;
-        if (boxPos.x > TARGET_WIDTH - boxSize.x)  boxPos.x = TARGET_WIDTH - boxSize.x;
-        if (boxPos.y < 0.0)                       boxPos.y = 0.0;
+        if (boxPos.x < 0.0) boxPos.x = 0.0;
+        if (boxPos.x > TARGET_WIDTH - boxSize.x) boxPos.x = TARGET_WIDTH - boxSize.x;
+        if (boxPos.y < 0.0) boxPos.y = 0.0;
         if (boxPos.y > TARGET_HEIGHT - boxSize.y) boxPos.y = TARGET_HEIGHT - boxSize.y;
 
         boxRect.x = static_cast<int>(boxPos.x);
@@ -81,6 +75,22 @@ int main()
         SDL_SetRenderTarget(renderer, renderTexture);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        for (int i = 0; i < TARGET_WIDTH; i += static_cast<int>(boxSize.x)) {
+            for (int j = 0; j < TARGET_HEIGHT; j += static_cast<int>(boxSize.y)) {
+                SDL_Rect rect {i, j, static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
+                SDL_RenderDrawRect(renderer, &rect);
+            }
+        }
+
+        int s = TARGET_HEIGHT - (static_cast<int>(boxSize.y) * 2);
+        for (int i = 0; i < TARGET_WIDTH; i += static_cast<int>(boxSize.x)) {
+            SDL_Rect rect {i, s, static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
+            SDL_SetRenderDrawColor(renderer, 128, 128, 128, 128);
+            SDL_RenderFillRect(renderer, &rect);
+        }
+
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
 
