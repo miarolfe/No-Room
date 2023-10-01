@@ -75,6 +75,7 @@ struct Cell {
 
 int main()
 {
+    EntityType currentEntityType = NO_ENTITY;
     int balance = 100;
     const int GRID_WIDTH = 32;
     const int GRID_HEIGHT = 18;
@@ -169,15 +170,19 @@ int main()
 
     FrameTimer frameTimer;
     InputHandler inputHandler;
-    Vec2 boxSize {50.0, 50.0};
+    Vec2Int boxSize {50, 50};
 
     while (!inputHandler.state.exit) {
         frameTimer.Update();
         inputHandler.Update();
 
-        int currentCellX = inputHandler.state.mousePos.x / static_cast<int>(boxSize.x);
-        int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
+        int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
+        int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
         Cell& currentCell = map[currentCellX][currentCellY];
+
+        if (inputHandler.state.wKeyPressed) currentEntityType = TURRET;
+        if (inputHandler.state.sKeyPressed) currentEntityType = OBSTACLE_1;
+        if (inputHandler.state.aKeyPressed) currentEntityType = NO_ENTITY;
 
         if (inputHandler.state.leftMousePressedThisFrame && balance >= 5 && currentCell.ground != WALL) {
             currentCell.entity = TURRET;
@@ -192,9 +197,17 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        SDL_Rect currentlyHoveredCellRect {
+                currentCellX * boxSize.x,
+                currentCellY * boxSize.y,
+                boxSize.x,
+                boxSize.y
+        };
+
+
         for (int i = 0; i < GRID_WIDTH; i++) {
             for (int j = 0; j < GRID_HEIGHT; j++) {
-                SDL_Rect rect {i * static_cast<int>(boxSize.x), j * static_cast<int>(boxSize.y), static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
+                SDL_Rect rect {i * boxSize.x, j * boxSize.y, boxSize.x, boxSize.y};
 
                 switch (map[i][j].ground) {
                     case DEFAULT_GROUND:
@@ -222,23 +235,50 @@ int main()
             }
         }
 
-        SDL_Rect currentlyHoveredCellRect {
-                currentCellX * static_cast<int>(boxSize.x),
-                currentCellY * static_cast<int>(boxSize.y),
-                static_cast<int>(boxSize.x),
-                static_cast<int>(boxSize.y)
-        };
+        if (currentCell.entity == NO_ENTITY) {
+            switch (currentEntityType) {
+                case NO_ENTITY:
+                    break;
+                case TURRET:
+                    SDL_RenderCopy(renderer, turretTexture, nullptr, &currentlyHoveredCellRect);
+                    break;
+                case OBSTACLE_1:
+                    SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &currentlyHoveredCellRect);
+                    break;
+            }
+        }
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
 
         SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
-        SDL_Rect menuRect {0, 0, static_cast<int>(boxSize.x * 4), GRID_HEIGHT * static_cast<int>(boxSize.y)};
+        SDL_Rect menuRect {0, 0, boxSize.x * 4, GRID_HEIGHT * boxSize.y};
         SDL_RenderFillRect(renderer, &menuRect);
-        DrawTextStringToWidth("No Room", boldFont, {25, 10}, static_cast<int>(boxSize.x * 4) - 50, renderer);
+        DrawTextStringToWidth("No Room", boldFont, {25, 10}, (boxSize.x * 4) - 50, renderer);
 
         string balanceStr = "$: " + std::to_string(balance);
-        DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, static_cast<int>(boxSize.y), renderer);
+        DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, boxSize.y, renderer);
+
+        SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
+        SDL_Rect turretButtonImgRect {turretButtonRect.x + 15, turretButtonRect.y + 15, turretButtonRect.w - 30, turretButtonRect.h - 30};
+        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        SDL_RenderFillRect(renderer, &turretButtonRect);
+        SDL_RenderCopy(renderer, turretTexture, nullptr, &turretButtonImgRect);
+        DrawTextStringToHeight("Turret", regularFont, {turretButtonRect.x + 5, turretButtonRect.y}, 30, renderer);
+        DrawTextStringToWidth("$5", regularFont, {turretButtonRect.x + 5, turretButtonRect.y + turretButtonRect.h - 30}, 20, renderer);
+
+        SDL_Rect obstacleButtonRect {25, turretButtonRect.y + turretButtonRect.h + 25, boxSize.x * 3, boxSize.y * 3};
+        SDL_Rect obstacleButtonImgRect {obstacleButtonRect.x + 15, obstacleButtonRect.y + 15, obstacleButtonRect.w - 35, obstacleButtonRect.h - 30};
+        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        SDL_RenderFillRect(renderer, &obstacleButtonRect);
+        SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &obstacleButtonImgRect);
+        DrawTextStringToHeight("Obstacle", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y}, 30, renderer);
+        DrawTextStringToWidth("$1", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y + obstacleButtonRect.h - 35}, 20, renderer);
+
+        SDL_Rect sellButtonRect {25, obstacleButtonRect.y + obstacleButtonRect.h + 25, boxSize.x * 3, boxSize.y};
+        SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        SDL_RenderFillRect(renderer, &sellButtonRect);
+        DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 50, sellButtonRect.y}, sellButtonRect.h, renderer);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
