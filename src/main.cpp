@@ -1,13 +1,15 @@
 #define SDL_MAIN_HANDLED
 
 #include <iostream>
+#include <fstream>
 #include <vector>
-#include "Enemy.h"
+#include "json.hpp"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
 #include "BoxCollider.h"
+#include "Enemy.h"
 #include "Entity.h"
 #include "FrameTimer.h"
 #include "InputHandler.h"
@@ -15,6 +17,7 @@
 #include "Vec2Int.h"
 
 using string = std::string;
+using json = nlohmann::json;
 
 const SDL_Color WHITE = {255, 255, 255, 255};
 const int TURRET_VALUE = 5;
@@ -78,6 +81,17 @@ enum EntityType {
     OBSTACLE
 };
 
+enum EnemyType {
+    VAN,
+    PICKUP
+};
+
+struct EnemySpawn {
+    double spawnTime;
+    EnemyType type;
+    double startY;
+};
+
 struct Cell {
     GroundType ground;
     EntityType entityType;
@@ -86,6 +100,8 @@ struct Cell {
 
 int main()
 {
+    double gameClock = 0.0f;
+    bool gameplayActive = false;
     EntityType currentEntityType = NO_ENTITY;
     int balance = 100;
     const int GRID_WIDTH = 32;
@@ -228,20 +244,62 @@ int main()
     BoxCollider pauseButtonCollider(pauseButtonRect);
     SDL_Rect pauseButtonImgRect {pauseButtonRect.x + 15, pauseButtonRect.y + 5, pauseButtonRect.w - 30, pauseButtonRect.h - 10};
 
-    while (!inputHandler.state.exit) {
-        frameTimer.Update();
-        inputHandler.Update();
+    string enemySpawnPath = GetAssetFolderPath();
+    enemySpawnPath += "game.json";
+    std::ifstream enemySpawnFile(enemySpawnPath);
+    json enemySpawnJson;
+    enemySpawnFile >> enemySpawnJson;
+    enemySpawnFile.close();
 
-        for (int i = 0; i < GRID_WIDTH; i++) {
-            for (int j = 0; j < GRID_HEIGHT; j++) {
-                if (map[i][j].entityType != NO_ENTITY) {
-                    map[i][j].entity->Update(frameTimer.frameDeltaMs);
-                }
-            }
+    std::vector<EnemySpawn> enemySpawns;
+
+    for (const auto& item : enemySpawnJson) {
+        bool validEnemySpawn = true;
+
+        EnemySpawn enemySpawn{};
+        enemySpawn.spawnTime = item["spawn_time"];
+
+        string type = item["type"];
+
+        if (type == "VAN") {
+            enemySpawn.type = VAN;
+        } else if (type == "PICKUP") {
+            enemySpawn.type = PICKUP;
+        } else {
+            validEnemySpawn = false;
         }
 
-        for (Enemy& enemy : enemies) {
-            enemy.Update(frameTimer.frameDeltaMs);
+        enemySpawn.startY = item["y"];
+
+        if (validEnemySpawn) {
+            enemySpawns.push_back(enemySpawn);
+        }
+    }
+
+    std::sort(enemySpawns.begin(), enemySpawns.end(), [](const EnemySpawn& a, const EnemySpawn& b) {
+       return a.spawnTime < b.spawnTime;
+    });
+
+    while (!inputHandler.state.exit) {
+        inputHandler.Update();
+        frameTimer.Update();
+
+        if (gameplayActive) {
+            gameClock += frameTimer.frameDeltaMs;
+        }
+
+        if (gameplayActive) {
+            for (int i = 0; i < GRID_WIDTH; i++) {
+                for (int j = 0; j < GRID_HEIGHT; j++) {
+                    if (map[i][j].entityType != NO_ENTITY) {
+                        map[i][j].entity->Update(frameTimer.frameDeltaMs);
+                    }
+                }
+            }
+
+            for (Enemy& enemy : enemies) {
+                enemy.Update(frameTimer.frameDeltaMs);
+            }
         }
 
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
@@ -254,6 +312,14 @@ int main()
 
         if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
             SpawnEnemy(enemies, {-25.0, 25.0}, pickupTruckTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);
+        }
+
+        if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            gameplayActive = true;
+        }
+
+        if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            gameplayActive = false;
         }
 
         if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {

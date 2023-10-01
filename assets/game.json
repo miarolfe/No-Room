@@ -1,0 +1,12 @@
+[
+  {
+    "spawn_time": 0.0,
+    "type": "pickup",
+    "y": 500
+  },
+  {
+    "spawn_time": 10.0,
+    "type": "pickup",
+    "y": 300
+  }
+]
