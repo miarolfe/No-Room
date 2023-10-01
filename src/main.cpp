@@ -82,6 +82,7 @@ enum GroundType {
     DEFAULT_GROUND,
     SAFE_ZONE,
     WALL,
+    PARKING_LOT
 };
 
 enum EntityType {
@@ -151,6 +152,8 @@ int main()
         map[GRID_WIDTH-3][i].ground = WALL;
     }
 
+    BoxCollider wallCollider(boxSize.x * (GRID_WIDTH-3), 0, boxSize.x, boxSize.y * GRID_HEIGHT);
+
     for (int i = GRID_WIDTH-2; i < GRID_WIDTH; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
             map[i][j].ground = SAFE_ZONE;
@@ -196,6 +199,14 @@ int main()
     floor2Path += "Floor2.png";
     SDL_Texture* floor2Texture = IMG_LoadTexture(renderer, floor2Path.c_str());
 
+    string parkingLot1Path = GetAssetFolderPath();
+    parkingLot1Path += "ParkingLot1.png";
+    SDL_Texture* parkingLot1Texture = IMG_LoadTexture(renderer, parkingLot1Path.c_str());
+
+    string parkingLot2Path = GetAssetFolderPath();
+    parkingLot2Path += "ParkingLot2.png";
+    SDL_Texture* parkingLot2Texture = IMG_LoadTexture(renderer, parkingLot2Path.c_str());
+
     string turretPath = GetAssetFolderPath();
     turretPath += "Turret.png";
     SDL_Texture* turretTexture = IMG_LoadTexture(renderer, turretPath.c_str());
@@ -203,6 +214,10 @@ int main()
     string obstacle1Path = GetAssetFolderPath();
     obstacle1Path += "Obstacle1.png";
     SDL_Texture* obstacle1Texture = IMG_LoadTexture(renderer, obstacle1Path.c_str());
+
+    string projectilePath = GetAssetFolderPath();
+    projectilePath += "Projectile.png";
+    SDL_Texture* projectileTexture = IMG_LoadTexture(renderer, projectilePath.c_str());
 
     string vanPath = GetAssetFolderPath();
     vanPath += "Van.png";
@@ -240,6 +255,7 @@ int main()
     InputHandler inputHandler;
 
     std::vector<Enemy> enemies;
+    std::vector<Entity> projectiles;
 
     SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
     BoxCollider turretButtonCollider(turretButtonRect);
@@ -332,6 +348,22 @@ int main()
 
             for (Enemy& enemy : enemies) {
                 enemy.Update(frameTimer.frameDeltaMs);
+                if (enemy.collider.Intersects(wallCollider)) {
+                    std::cout << "Enemy hit wall" << std::endl;
+                    enemiesToRemove.push_back(enemy);
+                }
+            }
+
+            for (Entity& projectile : projectiles) {
+                projectile.Update(frameTimer.frameDeltaMs);
+                projectile.collider.pos.x -= frameTimer.frameDeltaMs;
+
+                for (Enemy& enemy : enemies) {
+                    if (projectile.collider.Intersects(enemy.collider)) {
+                        std::cout << "Projectile hit enemy" << std::endl;
+                        enemiesToRemove.push_back(enemy);
+                    }
+                }
             }
         }
 
@@ -386,14 +418,19 @@ int main()
                 switch (currentEntityType) {
                     case TURRET:
                         if (balance >= TURRET_VALUE) {
-                            currentCell.entity = new Entity({currentCellX * boxSize.x, currentCellY * boxSize.y}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, turretTexture);
+                            currentCell.entity = new TurretEntity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)},
+                                                                  {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)},
+                                                                  turretTexture,
+                                                                  {static_cast<double>(boxSize.x) / 2, static_cast<double>(boxSize.y) / 4},
+                                                                  projectileTexture,
+                                                                  projectiles);
                             currentCell.entityType = TURRET;
                             balance -= TURRET_VALUE;
                         }
                         break;
                     case OBSTACLE:
                         if (balance >= OBSTACLE_VALUE) {
-                            currentCell.entity = new Entity({currentCellX * boxSize.x, currentCellY * boxSize.y}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
+                            currentCell.entity = new Entity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
                             currentCell.entityType = OBSTACLE;
                             balance -= OBSTACLE_VALUE;
                         }
@@ -430,6 +467,14 @@ int main()
                     case WALL:
                         SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
                         break;
+                    case PARKING_LOT:
+                        if (i == GRID_WIDTH-1) {
+                            SDL_RenderCopy(renderer, parkingLot1Texture, nullptr, &rect);
+                        } else {
+                            SDL_RenderCopy(renderer, parkingLot2Texture, nullptr, &rect);
+                        }
+
+                        break;
                 }
             }
         }
@@ -445,6 +490,10 @@ int main()
                     SDL_RenderCopy(renderer, obstacle1Texture, nullptr, &currentlyHoveredCellRect);
                     break;
             }
+        }
+
+        for (Entity& projectile : projectiles) {
+            projectile.Draw(renderer);
         }
 
         for (int i = 0; i < GRID_WIDTH; i++) {
@@ -548,12 +597,16 @@ int main()
         SDL_RenderPresent(renderer);
     }
 
+    free(map);
     SDL_DestroyTexture(renderTexture);
     SDL_DestroyTexture(wall1Texture);
     SDL_DestroyTexture(floor1Texture);
     SDL_DestroyTexture(floor2Texture);
+    SDL_DestroyTexture(parkingLot1Texture);
+    SDL_DestroyTexture(parkingLot2Texture);
     SDL_DestroyTexture(turretTexture);
     SDL_DestroyTexture(obstacle1Texture);
+    SDL_DestroyTexture(projectileTexture);
     SDL_DestroyTexture(vanTexture);
     SDL_DestroyTexture(pickupTruckTexture);
     SDL_DestroyTexture(playButtonTexture);

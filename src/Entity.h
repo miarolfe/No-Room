@@ -6,12 +6,11 @@
 
 class Entity {
 public:
-    Vec2Int pos;
     BoxCollider collider;
     SDL_Texture* texture;
     double timeSinceCreationMs = 0.0;
 
-    void Update(double frameDelta) {
+    virtual void Update(double frameDelta) {
         timeSinceCreationMs += frameDelta;
     }
 
@@ -20,7 +19,37 @@ public:
         SDL_RenderCopy(renderer, texture, nullptr, &rect);
     }
 
-    Entity(Vec2Int pos, const Vec2& size, SDL_Texture* texture) : pos(pos), texture(texture) {
+    Entity(Vec2 pos, const Vec2& size, SDL_Texture* texture) : texture(texture) {
         collider = BoxCollider(static_cast<double>(pos.x), static_cast<double>(pos.y), size.x, size.y);
+    }
+};
+
+class TurretEntity : public Entity {
+public:
+    const double FIRE_INTERVAL_MS = 2000.0;
+    double fireTimerMs = 0.0;
+
+    std::vector<Entity>& projectiles;
+    Vec2 projectileSize;
+    SDL_Texture* projectileTexture;
+
+    TurretEntity(Vec2 pos, const Vec2& turretSize, SDL_Texture* turretTexture, const Vec2& projectileSize, SDL_Texture* projectileTexture, std::vector<Entity>& projectiles) : Entity(pos, turretSize, turretTexture),
+                                                                                                                                                                                  projectileSize(projectileSize), projectileTexture(projectileTexture), projectiles(projectiles) {
+    }
+
+    void Update(double frameDelta) override {
+        timeSinceCreationMs += frameDelta;
+        fireTimerMs += frameDelta;
+
+        if (fireTimerMs >= FIRE_INTERVAL_MS) {
+            fireTimerMs = 0.0;
+            Vec2 projectilePos {collider.pos.x + (collider.bounds.x/2) - (projectileSize.x/2), collider.pos.y + (collider.bounds.y/2) - (projectileSize.y/2)};
+            Entity projectile(projectilePos, projectileSize, projectileTexture);
+            projectiles.push_back(projectile);
+        }
+    }
+
+    void Fire() {
+
     }
 };
