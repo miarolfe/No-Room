@@ -4,7 +4,7 @@
 #include "Vec2.h"
 
 class BoxCollider {
-private:
+public:
     Vec2 pos {0.0, 0.0};
     Vec2 bounds {0.0, 0.0};
 

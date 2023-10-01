@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 if (WIN32)
     add_executable(LD54 src/main.cpp
             src/InputHandler.h
+            src/Enemy.h
             src/FrameTimer.h
             src/Vec2.h
             src/Vec2Int.h
@@ -35,7 +36,8 @@ elseif(APPLE)
             src/FrameTimer.h
             src/Vec2.h
             src/Vec2Int.h
-            src/BoxCollider.h)
+            src/BoxCollider.h
+            src/Enemy.h)
     set_target_properties(LD54 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/Info.plist)
     target_include_directories(LD54 PRIVATE "${CMAKE_SOURCE_DIR}/vendor/include")
     target_link_libraries(LD54 PRIVATE

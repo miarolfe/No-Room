@@ -1,6 +1,8 @@
 #define SDL_MAIN_HANDLED
 
 #include <iostream>
+#include <vector>
+#include "Enemy.h"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
@@ -14,6 +16,8 @@
 using string = std::string;
 
 const SDL_Color WHITE = {255, 255, 255, 255};
+const int TURRET_VALUE = 5;
+const int OBSTACLE_VALUE = 1;
 
 const char* GetAssetFolderPath() {
     const char* platform = SDL_GetPlatform();
@@ -153,6 +157,10 @@ int main()
     obstacle1Path += "Obstacle1.png";
     SDL_Texture* obstacle1Texture = IMG_LoadTexture(renderer, obstacle1Path.c_str());
 
+    string vanPath = GetAssetFolderPath();
+    vanPath += "Van.png";
+    SDL_Texture* vanTexture = IMG_LoadTexture(renderer, vanPath.c_str());
+
     string boldFontPath = GetAssetFolderPath();
     boldFontPath += "Changa-Bold.ttf";
     TTF_Font* boldFont = TTF_OpenFont(boldFontPath.c_str(), 120);
@@ -172,6 +180,7 @@ int main()
     FrameTimer frameTimer;
     InputHandler inputHandler;
     Vec2Int boxSize {50, 50};
+    std::vector<Enemy> enemies;
 
     SDL_Rect turretButtonRect {25, 100, boxSize.x * 3, boxSize.y * 3};
     BoxCollider turretButtonCollider(turretButtonRect);
@@ -184,9 +193,16 @@ int main()
     SDL_Rect sellButtonRect {25, obstacleButtonRect.y + obstacleButtonRect.h + 10, boxSize.x * 3, boxSize.y};
     BoxCollider sellButtonCollider(sellButtonRect);
 
+    SDL_Rect vanButtonRect {25, sellButtonRect.y + sellButtonRect.h + 10, boxSize.x * 3, boxSize.y};
+    BoxCollider vanButtonCollider(vanButtonRect);
+
     while (!inputHandler.state.exit) {
         frameTimer.Update();
         inputHandler.Update();
+
+        for (Enemy& enemy : enemies) {
+            enemy.Update(frameTimer.frameDeltaMs);
+        }
 
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
         int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
@@ -196,17 +212,21 @@ int main()
         if (inputHandler.state.sKeyPressed) currentEntityType = OBSTACLE_1;
         if (inputHandler.state.aKeyPressed) currentEntityType = NO_ENTITY;
 
+        if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            enemies.emplace_back(vanTexture, BoxCollider({-25, 25}, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}), 0.25);
+        }
+
         if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
             if (currentCell.entity != NO_ENTITY) {
                 switch (currentEntityType) {
                     case NO_ENTITY:
                         switch (currentCell.entity) {
                             case TURRET:
-                                balance += 5;
+                                balance += TURRET_VALUE;
                                 currentCell.entity = NO_ENTITY;
                                 break;
                             case OBSTACLE_1:
-                                balance += 1;
+                                balance += OBSTACLE_VALUE;
                                 currentCell.entity = NO_ENTITY;
                                 break;
                             default:
@@ -219,15 +239,15 @@ int main()
             } else {
                 switch (currentEntityType) {
                     case TURRET:
-                        if (balance >= 5) {
+                        if (balance >= TURRET_VALUE) {
                             currentCell.entity = TURRET;
-                            balance -= 5;
+                            balance -= TURRET_VALUE;
                         }
                         break;
                     case OBSTACLE_1:
-                        if (balance >= 1) {
+                        if (balance >= OBSTACLE_VALUE) {
                             currentCell.entity = OBSTACLE_1;
-                            balance -= 1;
+                            balance -= OBSTACLE_VALUE;
                         }
                         break;
                     default:
@@ -291,6 +311,10 @@ int main()
             }
         }
 
+        for (Enemy& enemy : enemies) {
+            enemy.Draw(renderer);
+        }
+
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
 
@@ -342,6 +366,17 @@ int main()
         SDL_RenderFillRect(renderer, &sellButtonRect);
         DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 50, sellButtonRect.y}, sellButtonRect.h, renderer);
 
+        if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
+        SDL_RenderFillRect(renderer, &vanButtonRect);
+        DrawTextStringToHeight("Van", regularFont, {vanButtonRect.x + 50, vanButtonRect.y}, vanButtonRect.h, renderer);
+
         SDL_SetRenderTarget(renderer, nullptr);
 
         if (aspectRatiosMatch) {
@@ -360,6 +395,7 @@ int main()
     SDL_DestroyTexture(floor2Texture);
     SDL_DestroyTexture(turretTexture);
     SDL_DestroyTexture(obstacle1Texture);
+    SDL_DestroyTexture(vanTexture);
     TTF_CloseFont(boldFont);
     TTF_CloseFont(mediumFont);
     TTF_CloseFont(regularFont);
