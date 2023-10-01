@@ -28,8 +28,9 @@ double Lerp(float start, float end, float t) {
 
 enum Cell {
     EMPTY,
+    SAFE_ZONE,
     WALL,
-    TURRET
+    TURRET,
 };
 
 int main()
@@ -45,7 +46,13 @@ int main()
     }
 
     for (int i = 0; i < GRID_HEIGHT; i++) {
-        map[GRID_WIDTH-2][i] = WALL;
+        map[GRID_WIDTH-3][i] = WALL;
+    }
+
+    for (int i = GRID_WIDTH-2; i < GRID_WIDTH; i++) {
+        for (int j = 0; j < GRID_HEIGHT; j++) {
+            map[i][j] = SAFE_ZONE;
+        }
     }
 
     const int TARGET_WIDTH = 1600;
@@ -80,6 +87,10 @@ int main()
     string floor1Path = GetAssetFolderPath();
     floor1Path += "Floor1.png";
     SDL_Texture* floor1Texture = IMG_LoadTexture(renderer, floor1Path.c_str());
+
+    string floor2Path = GetAssetFolderPath();
+    floor2Path += "Floor2.png";
+    SDL_Texture* floor2Texture = IMG_LoadTexture(renderer, floor2Path.c_str());
 
     const double MOVE_SPEED = 1.0;
 
@@ -120,7 +131,6 @@ int main()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         for (int i = 0; i < GRID_WIDTH; i++) {
             for (int j = 0; j < GRID_HEIGHT; j++) {
                 SDL_Rect rect {i * static_cast<int>(boxSize.x), j * static_cast<int>(boxSize.y), static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
@@ -128,7 +138,10 @@ int main()
                 switch (map[i][j]) {
                     case EMPTY:
                         SDL_RenderCopy(renderer, floor1Texture, nullptr, &rect);
-                        // SDL_RenderDrawRect(renderer, &rect);
+
+                        break;
+                    case SAFE_ZONE:
+                        SDL_RenderCopy(renderer, floor2Texture, nullptr, &rect);
                         break;
                     case WALL:
                         SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
@@ -142,6 +155,16 @@ int main()
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
+
+        SDL_Rect currentlyHoveredCellRect {
+                inputHandler.state.mousePos.x,
+                inputHandler.state.mousePos.y,
+                static_cast<int>(boxSize.x),
+                static_cast<int>(boxSize.y)
+        };
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderDrawRect(renderer, &currentlyHoveredCellRect);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
