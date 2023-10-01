@@ -61,6 +61,10 @@ double Lerp(float start, float end, float t) {
     return start + t * (end - start);
 }
 
+void SpawnEnemy(std::vector<Enemy>& enemies, const Vec2& pos, SDL_Texture* texture, const Vec2& size, double speed) {
+    enemies.emplace_back(texture, BoxCollider({pos.x, pos.y}, {size.x, size.y}), speed);
+}
+
 enum GroundType {
     DEFAULT_GROUND,
     SAFE_ZONE,
@@ -161,6 +165,10 @@ int main()
     vanPath += "Van.png";
     SDL_Texture* vanTexture = IMG_LoadTexture(renderer, vanPath.c_str());
 
+    string pickupTruckPath = GetAssetFolderPath();
+    pickupTruckPath += "PickupTruck.png";
+    SDL_Texture* pickupTruckTexture = IMG_LoadTexture(renderer, pickupTruckPath.c_str());
+
     string boldFontPath = GetAssetFolderPath();
     boldFontPath += "Changa-Bold.ttf";
     TTF_Font* boldFont = TTF_OpenFont(boldFontPath.c_str(), 120);
@@ -196,6 +204,9 @@ int main()
     SDL_Rect vanButtonRect {25, sellButtonRect.y + sellButtonRect.h + 10, boxSize.x * 3, boxSize.y};
     BoxCollider vanButtonCollider(vanButtonRect);
 
+    SDL_Rect pickupButtonRect {25, vanButtonRect.y + vanButtonRect.h + 10, boxSize.x * 3, boxSize.y};
+    BoxCollider pickupButtonCollider(pickupButtonRect);
+
     while (!inputHandler.state.exit) {
         frameTimer.Update();
         inputHandler.Update();
@@ -213,7 +224,11 @@ int main()
         if (inputHandler.state.aKeyPressed) currentEntityType = NO_ENTITY;
 
         if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
-            enemies.emplace_back(vanTexture, BoxCollider({-25, 25}, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}), 0.25);
+            SpawnEnemy(enemies, {-25.0, 25.0}, vanTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);
+        }
+
+        if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            SpawnEnemy(enemies, {-25.0, 25.0}, pickupTruckTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);
         }
 
         if (inputHandler.state.leftMousePressedThisFrame && currentCell.ground != WALL) {
@@ -364,7 +379,7 @@ int main()
         }
 
         SDL_RenderFillRect(renderer, &sellButtonRect);
-        DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 50, sellButtonRect.y}, sellButtonRect.h, renderer);
+        DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
 
         if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
@@ -375,7 +390,18 @@ int main()
         }
 
         SDL_RenderFillRect(renderer, &vanButtonRect);
-        DrawTextStringToHeight("Van", regularFont, {vanButtonRect.x + 50, vanButtonRect.y}, vanButtonRect.h, renderer);
+        DrawTextStringToHeight("Van", regularFont, {vanButtonRect.x + 15, vanButtonRect.y}, vanButtonRect.h, renderer);
+
+        if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
+        } else if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
+        } else {
+            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
+        }
+
+        SDL_RenderFillRect(renderer, &pickupButtonRect);
+        DrawTextStringToHeight("Pickup", regularFont, {pickupButtonRect.x + 15, pickupButtonRect.y}, pickupButtonRect.h, renderer);
 
         SDL_SetRenderTarget(renderer, nullptr);
 
@@ -396,6 +422,7 @@ int main()
     SDL_DestroyTexture(turretTexture);
     SDL_DestroyTexture(obstacle1Texture);
     SDL_DestroyTexture(vanTexture);
+    SDL_DestroyTexture(pickupTruckTexture);
     TTF_CloseFont(boldFont);
     TTF_CloseFont(mediumFont);
     TTF_CloseFont(regularFont);
