@@ -65,8 +65,17 @@ double Lerp(float start, float end, float t) {
     return start + t * (end - start);
 }
 
-void SpawnEnemy(std::vector<Enemy>& enemies, const Vec2& pos, SDL_Texture* texture, const Vec2& size, double speed) {
-    enemies.emplace_back(texture, BoxCollider({pos.x, pos.y}, {size.x, size.y}), speed);
+void SpawnEnemy(std::vector<Enemy>& enemies, const Vec2& pos, SDL_Texture* texture, const Vec2& size, double speed, int id) {
+    enemies.emplace_back(id, texture, BoxCollider({pos.x, pos.y}, {size.x, size.y}), speed);
+}
+
+void RemoveEnemy(std::vector<Enemy>& enemies, const Enemy& enemy) {
+    auto newEnd = std::remove_if(enemies.begin(), enemies.end(),
+                                 [&](const Enemy& iterEnemy) {
+                                     return enemy == iterEnemy;
+                                 });
+
+    enemies.erase(newEnd, enemies.end());
 }
 
 enum GroundType {
@@ -100,6 +109,7 @@ struct Cell {
 
 int main()
 {
+    int currentHighestEnemyId = 0;
     double gameClock = 0.0f;
     bool gameplayActive = false;
     EntityType currentEntityType = NO_ENTITY;
@@ -281,12 +291,14 @@ int main()
         inputHandler.Update();
         frameTimer.Update();
 
+        std::vector<Enemy> enemiesToRemove;
+
         if (gameplayActive) {
             gameClock += frameTimer.frameDeltaMs;
 
             EnemySpawn& nextEnemySpawn = enemySpawns.front();
             if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
-                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 2, static_cast<double>(boxSize.y)}, 0.25);
+                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 2, static_cast<double>(boxSize.y)}, 0.25, currentHighestEnemyId++);
                 enemySpawns.erase(enemySpawns.begin());
             }
 
@@ -296,7 +308,7 @@ int main()
                         map[i][j].entity->Update(frameTimer.frameDeltaMs);
                         for (Enemy& enemy : enemies) {
                             if (map[i][j].entity->collider.Intersects(enemy.collider)) {
-                                enemy.collider.pos = {-1000, -1000};
+                                enemiesToRemove.push_back(enemy);
                             }
                         }
                     }
@@ -306,6 +318,11 @@ int main()
             for (Enemy& enemy : enemies) {
                 enemy.Update(frameTimer.frameDeltaMs);
             }
+        }
+
+        while (!enemiesToRemove.empty()) {
+            RemoveEnemy(enemies, enemiesToRemove.front());
+            enemiesToRemove.erase(enemiesToRemove.begin());
         }
 
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
