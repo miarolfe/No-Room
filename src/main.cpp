@@ -280,10 +280,18 @@ int main()
     string turretFireSoundPath = GetAssetFolderPath();
     turretFireSoundPath += "TurretFire.wav";
 
+    string placeEntitySoundPath = GetAssetFolderPath();
+    placeEntitySoundPath += "PlaceEntity.wav";
+
+    string sellEntitySoundPath = GetAssetFolderPath();
+    sellEntitySoundPath += "SellEntity.wav";
+
     std::vector<string> effectPaths = {
             alertSoundPath,
             hitEnemySoundPath,
-            turretFireSoundPath
+            turretFireSoundPath,
+            placeEntitySoundPath,
+            sellEntitySoundPath
     };
 
     AudioHandler audioHandler(effectPaths, trackPaths);
@@ -457,6 +465,8 @@ int main()
                 if (currentCell.entityType != NO_ENTITY) {
                     switch (currentEntityType) {
                         case NO_ENTITY:
+                            audioHandler.PlayEffect("SellEntity");
+
                             switch (currentCell.entityType) {
                                 case TURRET:
                                     balance += TURRET_VALUE;
@@ -481,6 +491,7 @@ int main()
                     switch (currentEntityType) {
                         case TURRET:
                             if (balance >= TURRET_VALUE) {
+                                audioHandler.PlayEffect("PlaceEntity");
                                 currentCell.entity = new TurretEntity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)},
                                                                       {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)},
                                                                       turretTexture,
@@ -494,6 +505,7 @@ int main()
                             break;
                         case OBSTACLE:
                             if (balance >= OBSTACLE_VALUE) {
+                                audioHandler.PlayEffect("PlaceEntity");
                                 currentCell.entity = new Entity({static_cast<double>(currentCellX * boxSize.x), static_cast<double>(currentCellY * boxSize.y)}, {static_cast<double>(boxSize.x), static_cast<double>(boxSize.y)}, obstacle1Texture);
                                 currentCell.entityType = OBSTACLE;
                                 balance -= OBSTACLE_VALUE;
