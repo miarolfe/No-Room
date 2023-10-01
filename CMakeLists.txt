@@ -50,16 +50,16 @@ elseif(APPLE)
     )
     add_custom_command(TARGET LD54 POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.framework ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2.framework
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.framework       ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2.framework
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_image.framework ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2_image.framework
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_mixer.framework ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2_mixer.framework
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_ttf.framework ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2_ttf.framework
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_ttf.framework   ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Frameworks/SDL2_ttf.framework
             COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Resources
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/Resources
             COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/LD54.sh ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS
-            COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.framework/Versions/A/SDL2 @executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2 ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
+            COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2.framework/Versions/A/SDL2             @executable_path/../Frameworks/SDL2.framework/Versions/A/SDL2             ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
             COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_image.framework/Versions/A/SDL2_image @executable_path/../Frameworks/SDL2_image.framework/Versions/A/SDL2_image ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
             COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_mixer.framework/Versions/A/SDL2_mixer @executable_path/../Frameworks/SDL2_mixer.framework/Versions/A/SDL2_mixer ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
-            COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_ttf.framework/Versions/A/SDL2_ttf @executable_path/../Frameworks/SDL2_ttf.framework/Versions/A/SDL2_ttf ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
+            COMMAND install_name_tool -change ${CMAKE_SOURCE_DIR}/vendor/lib/SDL2_ttf.framework/Versions/A/SDL2_ttf     @executable_path/../Frameworks/SDL2_ttf.framework/Versions/A/SDL2_ttf     ${CMAKE_CURRENT_BINARY_DIR}/LD54.app/Contents/MacOS/LD54
     )
 endif()
