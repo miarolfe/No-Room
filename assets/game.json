@@ -5,9 +5,19 @@
     "y": 500
   },
   {
+    "spawn_time": 2.5,
+    "type": "VAN",
+    "y": 450
+  },
+  {
     "spawn_time": 5.0,
     "type": "PICKUP",
     "y": 700
+  },
+  {
+    "spawn_time": 7.5,
+    "type": "VAN",
+    "y": 400
   },
   {
     "spawn_time": 10.0,
@@ -15,9 +25,19 @@
     "y": 300
   },
   {
+    "spawn_time": 12.5,
+    "type": "VAN",
+    "y": 250
+  },
+  {
     "spawn_time": 15.0,
     "type": "VAN",
     "y": 100
+  },
+  {
+    "spawn_time": 17.5,
+    "type": "VAN",
+    "y": 150
   },
   {
     "spawn_time": 20.0,
@@ -25,9 +45,29 @@
     "y": 600
   },
   {
+    "spawn_time": 22.5,
+    "type": "PICKUP",
+    "y": 550
+  },
+  {
+    "spawn_time": 25.0,
+    "type": "VAN",
+    "y": 750
+  },
+  {
+    "spawn_time": 27.5,
+    "type": "VAN",
+    "y": 650
+  },
+  {
     "spawn_time": 30.0,
     "type": "VAN",
     "y": 700
+  },
+  {
+    "spawn_time": 32.5,
+    "type": "PICKUP",
+    "y": 650
   },
   {
     "spawn_time": 35.0,
@@ -45,9 +85,19 @@
     "y": 800
   },
   {
+    "spawn_time": 42.5,
+    "type": "PICKUP",
+    "y": 750
+  },
+  {
     "spawn_time": 45.0,
     "type": "VAN",
     "y": 300
+  },
+  {
+    "spawn_time": 47.5,
+    "type": "VAN",
+    "y": 350
   },
   {
     "spawn_time": 50.0,
@@ -55,9 +105,19 @@
     "y": 550
   },
   {
+    "spawn_time": 52.5,
+    "type": "VAN",
+    "y": 500
+  },
+  {
     "spawn_time": 55.0,
     "type": "VAN",
     "y": 450
+  },
+  {
+    "spawn_time": 57.5,
+    "type": "VAN",
+    "y": 400
   },
   {
     "spawn_time": 60.0,
@@ -65,9 +125,19 @@
     "y": 200
   },
   {
+    "spawn_time": 62.5,
+    "type": "VAN",
+    "y": 150
+  },
+  {
     "spawn_time": 65.0,
     "type": "VAN",
     "y": 650
+  },
+  {
+    "spawn_time": 67.5,
+    "type": "VAN",
+    "y": 750
   },
   {
     "spawn_time": 70.0,
@@ -75,14 +145,29 @@
     "y": 750
   },
   {
+    "spawn_time": 72.5,
+    "type": "VAN",
+    "y": 700
+  },
+  {
     "spawn_time": 75.0,
     "type": "VAN",
     "y": 350
   },
   {
+    "spawn_time": 77.5,
+    "type": "VAN",
+    "y": 300
+  },
+  {
     "spawn_time": 80.0,
     "type": "VAN",
-    "y": 900
+    "y": 850
+  },
+  {
+    "spawn_time": 82.5,
+    "type": "VAN",
+    "y": 200
   },
   {
     "spawn_time": 85.0,
@@ -90,9 +175,19 @@
     "y": 400
   },
   {
+    "spawn_time": 87.5,
+    "type": "VAN",
+    "y": 350
+  },
+  {
     "spawn_time": 90.0,
     "type": "VAN",
     "y": 250
+  },
+  {
+    "spawn_time": 92.5,
+    "type": "PICKUP",
+    "y": 300
   },
   {
     "spawn_time": 95.0,
@@ -100,9 +195,19 @@
     "y": 800
   },
   {
+    "spawn_time": 97.5,
+    "type": "VAN",
+    "y": 850
+  },
+  {
     "spawn_time": 100.0,
     "type": "PICKUP",
     "y": 600
+  },
+  {
+    "spawn_time": 102.5,
+    "type": "VAN",
+    "y": 550
   },
   {
     "spawn_time": 105.0,
@@ -110,9 +215,19 @@
     "y": 500
   },
   {
+    "spawn_time": 107.5,
+    "type": "VAN",
+    "y": 450
+  },
+  {
     "spawn_time": 110.0,
     "type": "VAN",
     "y": 300
+  },
+  {
+    "spawn_time": 112.5,
+    "type": "PICKUP",
+    "y": 350
   },
   {
     "spawn_time": 115.0,
@@ -120,9 +235,19 @@
     "y": 700
   },
   {
+    "spawn_time": 117.5,
+    "type": "VAN",
+    "y": 750
+  },
+  {
     "spawn_time": 120.0,
     "type": "VAN",
     "y": 600
+  },
+  {
+    "spawn_time": 122.5,
+    "type": "VAN",
+    "y": 550
   },
   {
     "spawn_time": 125.0,
@@ -130,9 +255,19 @@
     "y": 450
   },
   {
+    "spawn_time": 127.5,
+    "type": "VAN",
+    "y": 400
+  },
+  {
     "spawn_time": 130.0,
     "type": "VAN",
     "y": 200
+  },
+  {
+    "spawn_time": 132.5,
+    "type": "PICKUP",
+    "y": 250
   },
   {
     "spawn_time": 135.0,
@@ -140,9 +275,19 @@
     "y": 850
   },
   {
+    "spawn_time": 137.5,
+    "type": "VAN",
+    "y": 900
+  },
+  {
     "spawn_time": 140.0,
     "type": "VAN",
     "y": 400
+  },
+  {
+    "spawn_time": 142.5,
+    "type": "PICKUP",
+    "y": 450
   },
   {
     "spawn_time": 145.0,
@@ -150,14 +295,29 @@
     "y": 250
   },
   {
+    "spawn_time": 147.5,
+    "type": "VAN",
+    "y": 300
+  },
+  {
     "spawn_time": 150.0,
     "type": "VAN",
     "y": 700
   },
   {
-    "spawn_time": 155.0,
+    "spawn_time": 152.5,
     "type": "PICKUP",
     "y": 650
+  },
+  {
+    "spawn_time": 155.0,
+    "type": "PICKUP",
+    "y": 700
+  },
+  {
+    "spawn_time": 157.5,
+    "type": "VAN",
+    "y": 750
   },
   {
     "spawn_time": 160.0,
@@ -165,9 +325,19 @@
     "y": 550
   },
   {
+    "spawn_time": 162.5,
+    "type": "PICKUP",
+    "y": 600
+  },
+  {
     "spawn_time": 165.0,
     "type": "VAN",
     "y": 300
+  },
+  {
+    "spawn_time": 167.5,
+    "type": "VAN",
+    "y": 350
   },
   {
     "spawn_time": 170.0,
@@ -175,9 +345,19 @@
     "y": 750
   },
   {
+    "spawn_time": 172.5,
+    "type": "PICKUP",
+    "y": 700
+  },
+  {
     "spawn_time": 175.0,
     "type": "VAN",
     "y": 700
+  },
+  {
+    "spawn_time": 177.5,
+    "type": "VAN",
+    "y": 800
   },
   {
     "spawn_time": 180.0,
@@ -185,9 +365,19 @@
     "y": 500
   },
   {
+    "spawn_time": 182.5,
+    "type": "PICKUP",
+    "y": 550
+  },
+  {
     "spawn_time": 185.0,
     "type": "VAN",
     "y": 250
+  },
+  {
+    "spawn_time": 187.5,
+    "type": "VAN",
+    "y": 300
   },
   {
     "spawn_time": 190.0,
@@ -195,9 +385,19 @@
     "y": 800
   },
   {
+    "spawn_time": 192.5,
+    "type": "PICKUP",
+    "y": 750
+  },
+  {
     "spawn_time": 195.0,
     "type": "VAN",
     "y": 450
+  },
+  {
+    "spawn_time": 197.5,
+    "type": "VAN",
+    "y": 500
   },
   {
     "spawn_time": 200.0,
@@ -205,9 +405,19 @@
     "y": 700
   },
   {
+    "spawn_time": 202.5,
+    "type": "VAN",
+    "y": 550
+  },
+  {
     "spawn_time": 205.0,
     "type": "VAN",
     "y": 600
+  },
+  {
+    "spawn_time": 207.5,
+    "type": "VAN",
+    "y": 650
   },
   {
     "spawn_time": 210.0,
@@ -215,9 +425,19 @@
     "y": 300
   },
   {
+    "spawn_time": 212.5,
+    "type": "PICKUP",
+    "y": 350
+  },
+  {
     "spawn_time": 215.0,
     "type": "VAN",
     "y": 850
+  },
+  {
+    "spawn_time": 217.5,
+    "type": "VAN",
+    "y": 900
   },
   {
     "spawn_time": 220.0,
@@ -225,9 +445,19 @@
     "y": 400
   },
   {
+    "spawn_time": 222.5,
+    "type": "PICKUP",
+    "y": 450
+  },
+  {
     "spawn_time": 225.0,
     "type": "VAN",
     "y": 250
+  },
+  {
+    "spawn_time": 227.5,
+    "type": "VAN",
+    "y": 300
   },
   {
     "spawn_time": 230.0,
@@ -235,9 +465,19 @@
     "y": 700
   },
   {
+    "spawn_time": 232.5,
+    "type": "PICKUP",
+    "y": 750
+  },
+  {
     "spawn_time": 235.0,
     "type": "PICKUP",
     "y": 650
+  },
+  {
+    "spawn_time": 237.5,
+    "type": "VAN",
+    "y": 750
   },
   {
     "spawn_time": 240.0,
