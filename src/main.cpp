@@ -26,11 +26,20 @@ double Lerp(float start, float end, float t) {
     return start + t * (end - start);
 }
 
-enum Cell {
-    EMPTY,
+enum GroundType {
+    DEFAULT_GROUND,
     SAFE_ZONE,
     WALL,
+};
+
+enum EntityType {
+    NO_ENTITY,
     TURRET,
+};
+
+struct Cell {
+    GroundType ground;
+    EntityType entity;
 };
 
 int main()
@@ -41,17 +50,18 @@ int main()
 
     for (int i = 0; i < GRID_WIDTH; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
-            map[i][j] = EMPTY;
+            map[i][j].ground = DEFAULT_GROUND;
+            map[i][j].entity = NO_ENTITY;
         }
     }
 
     for (int i = 0; i < GRID_HEIGHT; i++) {
-        map[GRID_WIDTH-3][i] = WALL;
+        map[GRID_WIDTH-3][i].ground = WALL;
     }
 
     for (int i = GRID_WIDTH-2; i < GRID_WIDTH; i++) {
         for (int j = 0; j < GRID_HEIGHT; j++) {
-            map[i][j] = SAFE_ZONE;
+            map[i][j].ground = SAFE_ZONE;
         }
     }
 
@@ -92,6 +102,10 @@ int main()
     floor2Path += "Floor2.png";
     SDL_Texture* floor2Texture = IMG_LoadTexture(renderer, floor2Path.c_str());
 
+    string turretPath = GetAssetFolderPath();
+    turretPath += "Turret.png";
+    SDL_Texture* turretTexture = IMG_LoadTexture(renderer, turretPath.c_str());
+
     const double MOVE_SPEED = 1.0;
 
     FrameTimer frameTimer;
@@ -110,12 +124,16 @@ int main()
         frameTimer.Update();
         inputHandler.Update();
 
+        int currentCellX = inputHandler.state.mousePos.x / static_cast<int>(boxSize.x);
+        int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
+        Cell& currentCell = map[currentCellX][currentCellY];
+
+        if (inputHandler.state.leftMousePressedThisFrame)  currentCell.entity = TURRET;
+        if (inputHandler.state.rightMousePressedThisFrame) currentCell.entity = NO_ENTITY;
         if (inputHandler.state.leftKeyPressed  || inputHandler.state.aKeyPressed) boxPos.x -= (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.rightKeyPressed || inputHandler.state.dKeyPressed) boxPos.x += (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.upKeyPressed    || inputHandler.state.wKeyPressed) boxPos.y -= (MOVE_SPEED * frameTimer.frameDeltaMs);
         if (inputHandler.state.downKeyPressed  || inputHandler.state.sKeyPressed) boxPos.y += (MOVE_SPEED * frameTimer.frameDeltaMs);
-
-        // boxPos = {static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)};
 
         if (boxPos.x < 0.0) boxPos.x = 0.0;
         if (boxPos.x > TARGET_WIDTH - boxSize.x) boxPos.x = TARGET_WIDTH - boxSize.x;
@@ -135,10 +153,9 @@ int main()
             for (int j = 0; j < GRID_HEIGHT; j++) {
                 SDL_Rect rect {i * static_cast<int>(boxSize.x), j * static_cast<int>(boxSize.y), static_cast<int>(boxSize.x), static_cast<int>(boxSize.y)};
 
-                switch (map[i][j]) {
-                    case EMPTY:
+                switch (map[i][j].ground) {
+                    case DEFAULT_GROUND:
                         SDL_RenderCopy(renderer, floor1Texture, nullptr, &rect);
-
                         break;
                     case SAFE_ZONE:
                         SDL_RenderCopy(renderer, floor2Texture, nullptr, &rect);
@@ -146,7 +163,13 @@ int main()
                     case WALL:
                         SDL_RenderCopy(renderer, wall1Texture, nullptr, &rect);
                         break;
+                }
+
+                switch (map[i][j].entity) {
+                    case NO_ENTITY:
+                        break;
                     case TURRET:
+                        SDL_RenderCopy(renderer, turretTexture, nullptr, &rect);
                         break;
                 }
 
@@ -155,10 +178,6 @@ int main()
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &boxRect);
-
-        int currentCellX = inputHandler.state.mousePos.x / static_cast<int>(boxSize.x);
-        int currentCellY = inputHandler.state.mousePos.y / static_cast<int>(boxSize.y);
-        Cell currentCell = map[currentCellX][currentCellY];
 
         SDL_Rect currentlyHoveredCellRect {
                 currentCellX * static_cast<int>(boxSize.x),
