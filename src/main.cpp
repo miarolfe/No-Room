@@ -230,17 +230,11 @@ int main()
     SDL_Rect sellButtonRect {25, obstacleButtonRect.y + obstacleButtonRect.h + 10, boxSize.x * 3, boxSize.y};
     BoxCollider sellButtonCollider(sellButtonRect);
 
-    SDL_Rect vanButtonRect {25, sellButtonRect.y + sellButtonRect.h + 10, boxSize.x * 3, boxSize.y};
-    BoxCollider vanButtonCollider(vanButtonRect);
-
-    SDL_Rect pickupButtonRect {25, vanButtonRect.y + vanButtonRect.h + 10, boxSize.x * 3, boxSize.y};
-    BoxCollider pickupButtonCollider(pickupButtonRect);
-
-    SDL_Rect playButtonRect {25, pickupButtonRect.y + pickupButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
+    SDL_Rect playButtonRect {25, sellButtonRect.y + sellButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
     BoxCollider playButtonCollider(playButtonRect);
     SDL_Rect playButtonImgRect {playButtonRect.x + 15, playButtonRect.y + 5, playButtonRect.w - 30, playButtonRect.h - 10};
 
-    SDL_Rect pauseButtonRect {25 + playButtonRect.w + 10, pickupButtonRect.y + pickupButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
+    SDL_Rect pauseButtonRect {25 + playButtonRect.w + 10, sellButtonRect.y + sellButtonRect.h + 10, static_cast<int>(boxSize.x * 1.4), boxSize.y};
     BoxCollider pauseButtonCollider(pauseButtonRect);
     SDL_Rect pauseButtonImgRect {pauseButtonRect.x + 15, pauseButtonRect.y + 5, pauseButtonRect.w - 30, pauseButtonRect.h - 10};
 
@@ -258,6 +252,9 @@ int main()
 
         EnemySpawn enemySpawn{};
         enemySpawn.spawnTime = item["spawn_time"];
+
+        // Convert from seconds to milliseconds
+        enemySpawn.spawnTime *= 1000;
 
         string type = item["type"];
 
@@ -286,9 +283,13 @@ int main()
 
         if (gameplayActive) {
             gameClock += frameTimer.frameDeltaMs;
-        }
 
-        if (gameplayActive) {
+            EnemySpawn& nextEnemySpawn = enemySpawns.front();
+            if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
+                SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 2, static_cast<double>(boxSize.y)}, 0.25);
+                enemySpawns.erase(enemySpawns.begin());
+            }
+
             for (int i = 0; i < GRID_WIDTH; i++) {
                 for (int j = 0; j < GRID_HEIGHT; j++) {
                     if (map[i][j].entityType != NO_ENTITY) {
@@ -305,14 +306,6 @@ int main()
         int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
         int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
         Cell& currentCell = map[currentCellX][currentCellY];
-
-        if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
-            SpawnEnemy(enemies, {-25.0, 25.0}, vanTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);
-        }
-
-        if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
-            SpawnEnemy(enemies, {-25.0, 25.0}, pickupTruckTexture, {static_cast<double>(boxSize.x * 2), static_cast<double>(boxSize.y)}, 0.25);
-        }
 
         if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
             gameplayActive = true;
@@ -473,28 +466,6 @@ int main()
 
         SDL_RenderFillRect(renderer, &sellButtonRect);
         DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
-
-        if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-        } else if (vanButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &vanButtonRect);
-        DrawTextStringToHeight("Van", regularFont, {vanButtonRect.x + 15, vanButtonRect.y}, vanButtonRect.h, renderer);
-
-        if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
-            SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
-        } else if (pickupButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
-            SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
-        } else {
-            SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
-        }
-
-        SDL_RenderFillRect(renderer, &pickupButtonRect);
-        DrawTextStringToHeight("Pickup", regularFont, {pickupButtonRect.x + 15, pickupButtonRect.y}, pickupButtonRect.h, renderer);
 
         if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
             SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
