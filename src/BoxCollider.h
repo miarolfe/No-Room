@@ -29,4 +29,16 @@ public:
     bool Contains(Vec2 point) const {
         return (point.x > pos.x && point.x < pos.x + bounds.x && point.y > pos.y && point.y < pos.y + bounds.y);
     }
+
+    bool Intersects(const BoxCollider& other) {
+        if (pos.x + bounds.x < other.pos.x || pos.x > other.pos.x + other.bounds.x) {
+            return false;
+        }
+
+        if (pos.y + bounds.y < other.pos.y || pos.y > other.pos.y + other.bounds.y) {
+            return false;
+        }
+
+        return true;
+    }
 };

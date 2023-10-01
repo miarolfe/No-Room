@@ -294,6 +294,11 @@ int main()
                 for (int j = 0; j < GRID_HEIGHT; j++) {
                     if (map[i][j].entityType != NO_ENTITY) {
                         map[i][j].entity->Update(frameTimer.frameDeltaMs);
+                        for (Enemy& enemy : enemies) {
+                            if (map[i][j].entity->collider.Intersects(enemy.collider)) {
+                                enemy.collider.pos = {-1000, -1000};
+                            }
+                        }
                     }
                 }
             }
