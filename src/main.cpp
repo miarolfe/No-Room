@@ -180,8 +180,8 @@ int main()
     const int TARGET_HEIGHT = 900;
     const double TARGET_ASPECT_RATIO = static_cast<double>(TARGET_WIDTH) / static_cast<double>(TARGET_HEIGHT);
 
-    const int WINDOW_WIDTH = 1600;
-    const int WINDOW_HEIGHT = 900;
+    const int WINDOW_WIDTH = 1280;
+    const int WINDOW_HEIGHT = 720;
     const double WINDOW_ASPECT_RATIO = static_cast<double>(WINDOW_WIDTH) / static_cast<double>(WINDOW_HEIGHT);
 
     bool aspectRatiosMatch = true;
@@ -368,12 +368,15 @@ int main()
 
         inputHandler.Update();
         Vec2 mouseScalingRatio = {
-                static_cast<double>(WINDOW_WIDTH) / static_cast<double>(TARGET_WIDTH),
-                static_cast<double>(WINDOW_HEIGHT) / static_cast<double>(TARGET_HEIGHT)
+                static_cast<double>(TARGET_WIDTH) / static_cast<double>(WINDOW_WIDTH),
+                static_cast<double>(TARGET_HEIGHT) / static_cast<double>(WINDOW_HEIGHT)
         };
 
-        inputHandler.state.mousePos.x = static_cast<int>(static_cast<double>(inputHandler.state.mousePos.x) * mouseScalingRatio.x);
-        inputHandler.state.mousePos.y = static_cast<int>(static_cast<double>(inputHandler.state.mousePos.y) * mouseScalingRatio.y);
+        Vec2Int adjustedMousePos = {
+                static_cast<int>(static_cast<double>(inputHandler.state.mousePos.x) * mouseScalingRatio.x),
+                static_cast<int>(static_cast<double>(inputHandler.state.mousePos.y) * mouseScalingRatio.y)
+        };
+
         frameTimer.Update();
 
         if (!gameOver) {
@@ -462,15 +465,15 @@ int main()
                 entitiesToRemove.erase(entitiesToRemove.begin());
             }
 
-            int currentCellX = inputHandler.state.mousePos.x / boxSize.x;
-            int currentCellY = inputHandler.state.mousePos.y / boxSize.y;
+            int currentCellX = adjustedMousePos.x / boxSize.x;
+            int currentCellY = adjustedMousePos.y / boxSize.y;
             Cell& currentCell = map[currentCellX][currentCellY];
 
-            if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            if (playButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
                 gameplayActive = true;
             }
 
-            if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
+            if (pauseButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressedThisFrame) {
                 gameplayActive = false;
             }
 
@@ -608,10 +611,10 @@ int main()
             string balanceStr = "$: " + std::to_string(balance);
             DrawTextStringToHeight(balanceStr, regularFont, {25, 50}, boxSize.y, renderer);
 
-            if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            if (turretButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressed) {
                 SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
                 currentEntityType = TURRET;
-            } else if (turretButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            } else if (turretButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)})) {
                 SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
             } else {
                 SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
@@ -622,10 +625,10 @@ int main()
             DrawTextStringToHeight("Turret", regularFont, {turretButtonRect.x + 5, turretButtonRect.y}, 30, renderer);
             DrawTextStringToWidth("$5", regularFont, {turretButtonRect.x + 5, turretButtonRect.y + turretButtonRect.h - 30}, 20, renderer);
 
-            if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            if (obstacleButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressed) {
                 SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
                 currentEntityType = OBSTACLE;
-            } else if (obstacleButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            } else if (obstacleButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)})) {
                 SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
             } else {
                 SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
@@ -636,10 +639,10 @@ int main()
             DrawTextStringToHeight("Obstacle", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y}, 30, renderer);
             DrawTextStringToWidth("$1", regularFont, {obstacleButtonRect.x + 5, obstacleButtonRect.y + obstacleButtonRect.h - 35}, 20, renderer);
 
-            if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            if (sellButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressed) {
                 SDL_SetRenderDrawColor(renderer, 144, 144, 144, 255);
                 currentEntityType = NO_ENTITY;
-            } else if (sellButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            } else if (sellButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)})) {
                 SDL_SetRenderDrawColor(renderer, 192, 192, 192, 255);
             } else {
                 SDL_SetRenderDrawColor(renderer, 160, 160, 160, 255);
@@ -648,9 +651,9 @@ int main()
             SDL_RenderFillRect(renderer, &sellButtonRect);
             DrawTextStringToHeight("Sell", regularFont, {sellButtonRect.x + 15, sellButtonRect.y}, sellButtonRect.h, renderer);
 
-            if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            if (playButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressed) {
                 SDL_SetRenderDrawColor(renderer, 144, 255, 144, 255);
-            } else if (playButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            } else if (playButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)})) {
                 SDL_SetRenderDrawColor(renderer, 192, 255, 192, 255);
             } else if (gameplayActive) {
                 SDL_SetRenderDrawColor(renderer, 160, 255, 160, 255);
@@ -661,9 +664,9 @@ int main()
             SDL_RenderFillRect(renderer, &playButtonRect);
             SDL_RenderCopy(renderer, playButtonTexture, nullptr, &playButtonImgRect);
 
-            if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)}) && inputHandler.state.leftMousePressed) {
+            if (pauseButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)}) && inputHandler.state.leftMousePressed) {
                 SDL_SetRenderDrawColor(renderer, 255, 144, 144, 255);
-            } else if (pauseButtonCollider.Contains({static_cast<double>(inputHandler.state.mousePos.x), static_cast<double>(inputHandler.state.mousePos.y)})) {
+            } else if (pauseButtonCollider.Contains({static_cast<double>(adjustedMousePos.x), static_cast<double>(adjustedMousePos.y)})) {
                 SDL_SetRenderDrawColor(renderer, 255, 192, 192, 255);
             } else if (!gameplayActive) {
                 SDL_SetRenderDrawColor(renderer, 255, 160, 160, 255);
