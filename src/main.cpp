@@ -8,6 +8,7 @@
 #include "SDL_image.h"
 #include "SDL_mixer.h"
 #include "SDL_ttf.h"
+#include "AudioHandler.h"
 #include "BoxCollider.h"
 #include "Enemy.h"
 #include "Entity.h"
@@ -190,7 +191,7 @@ int main()
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
-    // Mix_Init()
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 
     // Window creation and position in the center of the screen
     SDL_Window* window = SDL_CreateWindow("LD54", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
@@ -264,6 +265,22 @@ int main()
     semiBoldFontPath += "Changa-SemiBold.ttf";
     TTF_Font* semiBoldFont = TTF_OpenFont(semiBoldFontPath.c_str(), 120);
 
+    std::vector<string> trackPaths = {
+
+    };
+
+    string alertSoundPath = GetAssetFolderPath();
+    alertSoundPath += "Alert.wav";
+
+    string hitEnemySoundPath = GetAssetFolderPath();
+    hitEnemySoundPath += "HitEnemy.wav";
+
+    std::vector<string> effectPaths = {
+            alertSoundPath,
+            hitEnemySoundPath
+    };
+
+    AudioHandler audioHandler(effectPaths, trackPaths);
     FrameTimer frameTimer;
     InputHandler inputHandler;
 
@@ -342,6 +359,7 @@ int main()
             if (gameClock >= nextEnemySpawn.spawnTime && !enemySpawns.empty()) {
                 SpawnEnemy(enemies, {-25, nextEnemySpawn.startY}, pickupTruckTexture, {static_cast<double>(boxSize.x) * 1.5, static_cast<double>(boxSize.y) * 0.75}, 0.25, currentHighestEnemyId++);
                 enemySpawns.erase(enemySpawns.begin());
+                audioHandler.PlayEffect("Alert");
             }
 
             for (int i = 0; i < GRID_WIDTH; i++) {
@@ -353,6 +371,7 @@ int main()
                                 enemiesToRemove.push_back(enemy);
                                 enemy.removed = true;
                                 entitiesToRemove.emplace_back(i, j);
+                                audioHandler.PlayEffect("HitEnemy");
                             }
                         }
                     }
@@ -376,6 +395,7 @@ int main()
                     if (projectile.collider.Intersects(enemy.collider)) {
                         std::cout << "Projectile hit enemy" << std::endl;
                         enemiesToRemove.push_back(enemy);
+                        audioHandler.PlayEffect("HitEnemy");
                     }
                 }
             }
