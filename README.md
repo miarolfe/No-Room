@@ -1,12 +1,15 @@
-# LD54
+# No Room
 
 ## Licensing
 
-### LD54
+### No Room
 TBD
 
 ### SDL libraries
 zlib license
 
-### Pixelify Sans
+### nlohmann/json
+MIT license
+
+### Changa (font)
 Open Font License
